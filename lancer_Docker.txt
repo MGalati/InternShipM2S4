@@ -1,0 +1,42 @@
+Docker est un logiciel opensource permettant facilement de lancer des apps dans des conteneurs logiciels. C'est un soft "snap".
+Pour mettre à jour les apps "snap" :
+sudo snap refresh
+
+A contrario de :
+sudo apt-get update
+sudo apt-get upgrade
+
+Instructions issues de :
+https://ropenscilabs.github.io/r-docker-tutorial/02-Launching-Docker.html
+
+1- Installer Docker
+
+2-Lancer une session RStudio avec Docker (username=rstudio)
+sudo docker run --rm -e PASSWORD=azerty -p 8787:8787 -v /home/galati/Téléchargements:/home/rstudio/r-docker-tutorial rocker/verse
+
+3-L'ouvrir avec un navigateur
+http://localhost:8787
+
+4-Effectuer le travail
+#installer packages dans R: install.packages('toto')
+
+5-Sauvegarder le container
+sudo docker ps
+sudo docker commit -m "message du changement" 4a6a528b35da verse_gapminder
+
+6-Package externe à R si besoin dans l'image
+sudo docker ps # find the ID of the running container you want to add a package to
+sudo docker exec -it <container-id> bash # a docker command to start a bash shell in your container
+sudo apt-get update
+sudo apt-get install libgsl0-dev # install the package, in this case GSL
+sudo docker commit -m "verse + gapminder + GSL" <container id>  verse_gapminder_gsl #Saving
+
+7-Mettre sur Docker Hub
+sudo docker login --username=mathiasgalati
+sudo docker tag 04e73fb34fd3 mathiasgalati/verse_gapminder:firsttry
+sudo docker push mathiasgalati/verse_gapminder
+ Voilà c'est publié !
+Sinon on peut le compresser : sudo docker save verse_gapminder > verse_gapminder.tar
+et pour charger l'image ensuite : sudo docker load --input verse_gapminder.tar
+
+#Pas d'image du tuto de dada2 publié par soucis de temps
