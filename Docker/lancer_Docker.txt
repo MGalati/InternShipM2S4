@@ -29,7 +29,6 @@ sudo docker ps # find the ID of the running container you want to add a package 
 sudo docker exec -it <container-id> bash # a docker command to start a bash shell in your container
 sudo apt-get update
 sudo apt-get install libgsl0-dev # install the package, in this case GSL
-sudo docker commit -m "verse + gapminder + GSL" <container id>  verse_gapminder_gsl #Saving
 
 7-Mettre sur Docker Hub
 sudo docker login --username=mathiasgalati
@@ -40,3 +39,26 @@ Sinon on peut le compresser : sudo docker save verse_gapminder > verse_gapminder
 et pour charger l'image ensuite : sudo docker load --input verse_gapminder.tar
 
 #Pas d'image du tuto de dada2 publié par soucis de temps
+
+SINON
+1-Créer un fichier nommé "DockerFile" avec :
+FROM rocker/verse:3.3.2
+RUN R -e "install.packages('gapminder', repos = 'http://cran.us.r-project.org')"
+ADD analysis.R /home/galati/Téléchargements
+
+Où analysis.R est notre fichier de stats à partager.
+
+2- Lancer la construction de l'image :
+docker build -t my-analysis .
+
+3-Comme avant pour le mettre sur DockerHub.
+
+
+Pour récupérer sur un autre PC :
+1-Installer Docker : sudo snap install docker
+
+2-Se log sur DockerHub
+
+3-Récupérer l'image :
+sudo docker pull mathiasgalati/verse_gapminder:restroom_example
+
