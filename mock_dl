@@ -1,0 +1,119 @@
+https://isugenomics.github.io/bioinformatics-workbook/dataAcquisition/fileTransfer/sra.html
+
+conda install -c bioconda sra-tools
+
+Acces mock : https://docs.google.com/spreadsheets/d/1fk77L2YphHz9rca7nE0jtYVLbF2bLSkt3fyPIXlfsWw/edit?usp=sharing
+
+__________________________________________________________________
+Essais de boucles ...
+for f in ERS191845{3,9}
+do
+	fastq-dump --readids --dumpbase --split-files --clip $f
+done
+------------------------------------------------------------------
+fastq-dump --readids --dumpbase --split-files --clip ERS1918459
+fastq-dump --readids --dumpbase --split-files --clip ERS1918458
+fastq-dump --readids --dumpbase --split-files --clip ERS1918457
+fastq-dump --readids --dumpbase --split-files --clip ERS1918456
+fastq-dump --readids --dumpbase --split-files --clip ERS1918455
+fastq-dump --readids --dumpbase --split-files --clip ERS1918454
+fastq-dump --readids --dumpbase --split-files --clip ERS1918453
+
+___________________________________________________________________
+Essais de boucles :
+for f in 'awk {print $1} /homedir/galati/mock/SRP068612/mock.txt'
+do
+fastq-dump --readids --dumpbase --split-files --clip $f
+done
+--------------------------------------------------------------------
+for f in SRX1536377 SRX1536389 SRX1536402 SRX1536366 SRX1536381 SRX1536397 SRX1536399 SRX1555710 SRX1555707 SRX1555706 SRX1555717 SRX1555714 SRX1555726 SRX1555723 SRX1555722 SRX1555718 SRX1555709 
+do
+fastq-dump --readids --dumpbase --split-files --clip $f
+done
+
+erreur d'accès dans le banque du ncbi
+SRR3108050
+SRX1536366
+SRR3108065
+SRX1536381
+SRR3108081
+SRX1536397
+SRR3108083
+SRX1536399
+
+_______________________________________________
+Essais de boucles non concluants ...
+Mock provenant du git :
+mkdir /homedir/galati/mock/16S_Git
+for f in 'awk -F ";" {print $1} mock.txt'
+do
+wget -c $f -P/homedir/galati/mock/16S_Git
+done
+
+/homedir/galati/mock/ITS_Git
+for f in 'awk -F {print $2} mock.txt'
+do
+wget -c $f -P/homedir/galati/mock/ITS_Git -o
+done
+_________________________________________________
+
+Mock provenant du git hub : https://github.com/caporaso-lab/mockrobiota/blob/master/inventory.tsv
+-----------------------------------------------------------------------
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-1/mock-forward-read.fastq.gz
+mv mock-forward-read.fastq.gz 16S_mock1_forward.fasta.gz
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-1/mock-index-read.fastq.gz 
+mv mock-index-read.fastq.gz 16S_mock1_index.fasta.gz
+
+***********************************************************************
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-3/mock-forward-read.fastq.gz
+mv mock-forward-read.fastq.gz 16S_mock3_forward.fasta.gz
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-3/mock-reverse-read.fastq.gz
+mv mock-reverse-read.fastq.gz 16S_mock3_reverse.fasta.gz
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-3/mock-index-read.fastq.gz
+mv mock-index-read.fastq.gz 16S_mock3_index.fasta.gz
+
+***********************************************************************
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-7/mock-forward-read.fastq.gz
+mv mock-forward-read.fastq.gz 16S_mock7_forward.fasta.gz
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-7/mock-reverse-read.fastq.gz
+mv mock-reverse-read.fastq.gz 16S_mock7_reverse.fasta.gz
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-7/mock-index-read.fastq.gz
+mv mock-index-read.fastq.gz 16S_mock7_index.fasta.gz
+
+-------------------------------------------------------------------------
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-9/mock-forward-read.fastq.gz
+mv mock-forward-read.fastq.gz ITS_mock9_forward.fasta.gz
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-9/mock-reverse-read.fastq.gz
+mv mock-reverse-read.fastq.gz ITS_mock9_reverse.fasta.gz
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-9/mock-index-read.fastq.gz
+mv mock-index-read.fastq.gz ITS_mock9_index.fasta.gz
+
+**************************************************************************
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-24/mock-forward-read.fastq.gz
+mv mock-forward-read.fastq.gz ITS_mock24_forward.fasta.gz
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-24/mock-reverse-read.fastq.gz	
+mv mock-reverse-read.fastq.gz ITS_mock24_reverse.fasta.gz
+
+*************************************************************************
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-26/mock-forward-read.fastq.gz
+mv mock-forward-read.fastq.gz ITS_mock26_forward.fasta.gz
+
+wget -c https://s3-us-west-2.amazonaws.com/mockrobiota/latest/mock-26/mock-index-read.fastq.gz
+mv mock-index-read.fastq.gz ITS_mock26_index.fasta.gz
+
+_________________________________________________________________________
+
+scp /home/galati/Téléchargements/MiSeqSOPData/MiSeq_SOP/Mock_S280_L001_R1_001.fastq galati@cc2-login.cirad.fr:/homedir/galati/mock/dada2/
+scp /home/galati/Téléchargements/MiSeqSOPData/MiSeq_SOP/Mock_S280_L001_R2_001.fastq galati@cc2-login.cirad.fr:/homedir/galati/mock/dada2/
+
+
