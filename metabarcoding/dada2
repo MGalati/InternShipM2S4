@@ -1,0 +1,70 @@
+Récupération des fichiers fastq.gz
+scp galati@cc2-login.cirad.fr:/homedir/galati/data/interfaces/180914_M00842_0310_000000000-C3GBT/Data/Intensities/BaseCalls/qc/GC-BHS-1_S259_L001_R2_001_fastqc.html /home/galati/Téléchargements/
+
+scp galati@cc2-login.cirad.fr:/homedir/galati/data/interfaces/180918_M00842_0311_000000000-C3B4P/Data/Intensities/BaseCalls/qc/R1F37_S372_L001_R2_001_fastqc.html /home/galati/Téléchargements/
+300 its 180914
+256 16s 180918
+___________________________________________________________________________
+
+Initialisation dans un noeud de travail.
+qrsh -q normal.q
+
+Activation de l'environnement conda (Fichier yml à venir)
+conda activate qiime2-2018.11
+
+Suppression des adapteurs:
+*16S
+cutadapt \
+    --pair-filter any \
+    --no-indels \
+    --discard-untrimmed \
+    -g NNNNCCTACGGGNGGCWGCAG \
+    -G NNNNGACTACHVGGGTATCTAATCC \
+    -o $OUT$sample"_R1_001.fastq.gz" \
+    -p $OUT$sample"_R2_001.fastq.gz" \
+    --max-n 0  \
+    $IN$sample*R1*gz $IN$sample*R2*gz \
+    > $OUT$sample"_cutadapt_log.txt" 
+
+*ITS
+cutadapt \
+    --pair-filter any \
+    --no-indels \
+    --discard-untrimmed \
+    -g NNNNGTGAATCATCGAATCTTTGAA \
+    -G NNNNTCCTCCGCTTATTGATATGC \ 
+    -o $OUT$sample"_R1_001.fastq.gz" \
+    -p $OUT$sample"_R2_001.fastq.gz" \
+    --max-n 0  \
+    $IN$sample*R1*gz $IN$sample*R2*gz \
+    > $OUT$sample"_cutadapt_log.txt"
+_________________________________________________________________________
+
+Primer ???
+FW 5’ TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG-target specific sequence 3'
+-> sequencing primer binding site 
+_________________________________________________________________________
+
+Import des fichiers fastq.gz: (dans les dossiers dédiés)
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path /homedir/galati/data/16S \
+  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
+  --output-path demux-paired-end.qza
+
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path /homedir/galati/data/ITS \
+  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
+  --output-path demux-paired-end.qza
+_________________________________________________________________________
+
+Analyse des données et vizualisation:
+qiime demux summarize --i-data demux-paired-end.qza --o-visualization demux.qzv
+(dans les deux dossiers)
+qiime tools view demux.qzv -> Ne marche pas donc téléchargement en local et vizualisation sur le web outil
+
+scp galati@cc2-login.cirad.fr:/homedir/galati/metab/16S/demux.qzv /home/galati/Téléchargements/
+
+scp galati@cc2-login.cirad.fr:/homedir/galati/metab/ITS/demux.qzv /home/galati/Téléchargements/
+_________________________________________________________________________
