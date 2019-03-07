@@ -1,0 +1,156 @@
+https://snakemake.readthedocs.io/en/stable/tutorial/setup.html
+
+Installation de Miniconda3 (inutile pour le cluster voir *)
+get https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+
+Création du dossier de travail
+mkdir snakemake-tutorial
+cd snakemake-tutorial
+
+Import du dossier data et du fichier environnement.yaml
+wget https://bitbucket.org/snakemake/snakemake-tutorial/get/v5.2.3.tar.bz2
+tar -xf v5.2.3.tar.bz2 --strip 1
+
+Création de l'environnement avec les logiciels
+*module purge
+*module load system/conda/5.1.0
+
+*echo "export CONDA_ENVS_PATH=~/project/conda_envs:$CONDA_ENVS_PATH" >> ~/.bashrc
+*source ~/.bashrc
+
+conda env create --name snakemake-tutorial --file environment.yaml
+conda activate snakemake-tutorial
+
+Création d'un fichier Snakefile:
+rule bwa_map:
+    input:
+        "data/genome.fa",
+        "data/samples/A.fastq"
+    output:
+        "mapped_reads/A.bam"
+    shell:
+        "bwa mem {input} | samtools view -Sb - > {output}"
+
+Lancement de ce fichier:
+snakemake -np mapped_reads/A.bam
+-n montre ce qui va se passer sans executer
+-p = print
+Exectution :
+snakemake mapped_reads/A.bam
+
+Plusieurs cibles :
+snakemake -np mapped_reads/A.bam mapped_reads/B.bam
+ou
+snakemake -np mapped_reads/{A,B}.bam
+
+(Changer la date de modification pour pouvoir relancer le worflow) : touch data/samples/A.fastq)
+
+Triage des reads alignés :
+En dessous de la règle bwa :
+rule samtools_sort:
+    input:
+        "mapped_reads/{sample}.bam"
+    output:
+        "sorted_reads/{sample}.bam"
+    shell:
+        "samtools sort -T sorted_reads/{wildcards.sample} "
+        "-O bam {input} > {output}"
+
+Et on relance le workflow : snakemake -np sorted_reads/B.bam
+
+Indexage des alignements de reads et visualisation des directed acrylic graph (DAG) :
+snakemake --dag sorted_reads/{A,B}.bam.bai | dot -Tsvg > dag.svg
+display dag.svg
+
+Appel des variants génomiques ajout de la règle :
+rule bcftools_call:
+    input:
+        fa="data/genome.fa",
+        bam=expand("sorted_reads/{sample}.bam", sample=SAMPLES),
+        bai=expand("sorted_reads/{sample}.bam.bai", sample=SAMPLES)
+    output:
+        "calls/all.vcf"
+    shell:
+        "samtools mpileup -g -f {input.fa} {input.bam} | "
+        "bcftools call -mv - > {output}"
+
+Et lancement du workflow : snakemake calls/all.vcf
+snakemake --dag calls/all.vcf | dot -Tsvg > dag2.svg
+
+Utiliser des scripts custom :
+Nouvelle règle :
+rule plot_quals:
+    input:
+        "calls/all.vcf"
+    output:
+        "plots/quals.svg"
+    script:
+        "scripts/plot-quals.py"
+
+Ecrire un fichier python :
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from pysam import VariantFile
+
+quals = [record.qual for record in VariantFile(snakemake.input[0])]
+plt.hist(quals)
+
+plt.savefig(snakemake.output[0])
+
+Lancement : snakemake plots/quals.svg
+Création du dag : snakemake --dag plots/quals.svg | dot -Tsvg > dag3.svg
+Visu du DAG : display dag2.svg
+
+Ajout d'une règle cible en haut du fichier Snakemake:
+rule all:
+    input:
+        "plots/quals.svg"
+
+Lancement du workflow : snakemake -n
+Visualisation du graph : display plots/quals.svg
+
+----------------------------------------------------------------------------
+
+Advanced : "Décoration de l'exemple du workflow
+
+Utilisation de plus de coeurs de calcul :
+Dans l'exemple de la règle bwa :
+rule bwa_map:
+    input:
+        "data/genome.fa",
+        "data/samples/{sample}.fastq"
+    output:
+        "mapped_reads/{sample}.bam"
+    threads: 8
+    shell:
+        "bwa mem -t {threads} {input} | samtools view -Sb - > {output}"
+
+--forceall relance le workflow en entier !
+--cores 10 permet d'alouer 10 coeurs à l'execution
+
+Fichier de configuration :
+Tout en haut ajouter la ligne : configfile: "config.yaml"
+Dans un nouveau fichier config.yaml : 
+samples:
+    A: data/samples/A.fastq
+    B: data/samples/B.fastq
+
+Puis on enlève l'ancien header SAMPLES !
+Du coup la règle bcftools_call change en :
+rule bcftools_call:
+    input:
+        fa="data/genome.fa",
+        bam=expand("sorted_reads/{sample}.bam", sample=config["samples"]),
+        bai=expand("sorted_reads/{sample}.bam.bai", sample=config["samples"])
+    output:
+        "calls/all.vcf"
+    shell:
+        "samtools mpileup -g -f {input.fa} {input.bam} | "
+        "bcftools call -mv - > {output}"
+
+Lister les fichiers affectés par des nouveaux input :
+snakemake --list-input-changes
+snakemake --summary
+Forcer un rerun : snakemake -n --forcerun $(snakemake --list-input-changes)
