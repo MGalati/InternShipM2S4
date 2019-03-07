@@ -1,0 +1,5 @@
+http://merenlab.org/tutorials/infant-gut/#chapter-vi-a-genome-across-metagenomes
+
+Un genome à travers les metagenomes :
+anvi-interactive -p additional-files/e_faeealis_across_hmp/PROFILE.db \
+                    -c additional-files/e_faeealis_across_hmp/CONTIGS.db
