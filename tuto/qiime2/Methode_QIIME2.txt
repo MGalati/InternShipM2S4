@@ -1,0 +1,76 @@
+Différentes étapes pour faire une analyse de données 16S :
+
+Etape préliminaire : Intaller QIIME2
+https://docs.qiime2.org/2018.11/install/
+
+1 - Importation des séquences brutes (FASTQ) dans QIIME 2
+https://docs.qiime2.org/2018.11/tutorials/importing/
+Il y a différents méthodes en fonctions des données FASTQ et de leurs formats.
+
+2 - Démultiplexage des données (c.a.d mapping de chaques séquences dans l'échantillon d'où elles proviennent)
+Plugins = q2-demux et cutadapt
+* Si ils y a des reads d'échantillons multiples dans un même fichier, il faut démultiplexer les séquences
+* Si le "barcode" a déjà été retiré des fichiers de reads et est dans un fichier séparé, q2-demux permet de démultiplexer ça
+* Si le barcode est encore dans les séquences -> cutadapt
+
+Fusion des reads
+Si deblur ou OTU clustering methods : q2-vsearch
+Si dada2 -> Pas de fusion (merge) des séquences
+
+3 - Removing non-biological parts of the sequences (i.e. primers)
+Dans dada2 plus loin il y a une fonciton pour faire ça denoise --p-trim
+Le plugin q2-cutadapt permet d'enlever les séquences non-biologiques (single-end ou paired-end)
+
+Grouping similar sequences
+On a comme résultat :
+	- une liste des séquences représentatives pour chaque OTU/ASV
+	- une table qui indique combien de reads il y a pour chaque variant de séquences/OTU dans chaque échantillon.
+
+4 - Performing quality control and denoising sequences with DADA2 or deblur, and/or quality filtering, length trimming, and clustering with VSEARCH or dbOTU
+Avant de faire le denoising, il est recommandé de faire un filtre de qualité initial : quality-filter
+
+Avec dada2 il y a 3 méthodes de réduction du bruit / réduction de réplicats ? (dereplicate) et filtre les séquences chimères :
+	- denoise paired-end
+	- denoise single-end
+	- denoise-pyro (aussi pour les données ion-torrent)
+
+Avec deblur, il y a 2 méthodes :
+	- denoise-16S qui se fait sur les séquences 16S (minimum de 60% de similarités de séquences de 85% des OTU de la banques de données GreenGenes)
+	- denoise-other qui se fait sur toutes les autres séquences ne fait que du single-end reads
+
+OTU-Clustering, tutoriel détaillé https://docs.qiime2.org/2018.11/tutorials/otu-clustering/
+Les reads doivent avoir tous la même longueur, ceux de basses qualités écartés, que les séquences non-biologiques aient été enlevés et surtout que les reads paired-end aient été fusionnés.
+
+*Length trimming
+Si les séquences n'ont pas la même longueur, il faut se reporter à la fonction cutadapt précédente
+
+*Quality filtering
+Le plugin quality-filter est le seul utilisé
+
+*Dereplicating sequences
+Quelque soit le type de clustering qui va suivre il faut dérepliquer les séquences. Le plugin q2-vsearch est tout indiqué à cet usage.
+
+*de novo clustering
+Le séquences peuvent être regroupées de façon de novo en se basant uniquement sur la similarité génétique avec VSEARCH
+ou basé sur une combinaison de la similarité génétique et de leur distribution (abondance?)
+
+*closed reference clustering
+Le plugin est lui aussi q2-vsearch comme avant
+
+5 - Assigning taxonomy
+Tout est dans le plugin feature-classifier.
+Il y a deux approches :
+	- l'alignement des reads dans une base de données de référence
+		*classify-consensus-blast : BLAST + local alignement
+		*classify-consensus-vsearch : VSEARCH global alignment
+
+	- Une approche d'un classificateur en machine learning (classify-sklearn)
+	avec un modèle pré-entrainé de cassification de séquences. (Possibilité de le dl ou de faire l'entraînement soit même) 
+
+6 - Analyze data and gain insight!
+*regarder les données avec un barplot (taxa barplot) ou avec une PCoA (emperor)
+*faire un arbre phylogénétique (phylogeny)
+*calculer l'alpha diversité (alpha / alpha-phylogenetic)
+*calculer la beta diversité (beta / beta-phylogenetic / beta-phylogenetic-alt)
+*Différents tests statistiques : PERMANOVA, ANOSIM, ANCOM et Gneiss de QIIME2
+*Faire des classifieurs avec le machine learning et des régression pour faire des prédictions. 
