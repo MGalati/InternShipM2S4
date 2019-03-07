@@ -1,0 +1,46 @@
+Installation de Git Ubuntu : >sudo apt-get install git
+https://git-scm.com/download/linux
+
+
+Travailler avec GitHub via le terminal
+Bonne vidéo de prise en main même si son ton est très monotone : https://www.youtube.com/watch?v=SWYqp7iY_Tc
+
+
+Les commandes basiques :
+1- git init 					Initialise un dépot local de travail dans le répertoire courant
+
+
+2- git add <fichier>				Ajoute un fichier à l'index
+git add . 					Ajooute tous les fichiers
+git status 					Check le status des fichiers qui doivent être commit
+
+
+3- git commit -m 'Travail sur ...' 		Valide les changements dans l'index + commentaire
+
+
+4- Créer un répertoire de travail sur GitHub : https://github.com/new
+git config --global user.name 'Mathias Galati'
+git config --global user.email 'mathias.galati@cirad.fr'
+Les commandes suivante sont générer par le site pour notre terminal :
+echo "# tuto" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin git@github.com:MGalati/tuto.git
+git push -u origin master			Ajoute tous nos fichiers à GitHub
+
+
+5- git push					Applique tous les commits à GitHub 
+git pull 					Récupère les données depuis GitHub
+
+
+
+
+Il y a possibilité de travailler sur des branches "parallèles" à la branche master puis quand on a fini, on peut merge avec la branche master
+
+git clone <url généré par GitHub
+
+
+
+Lexique :
+Index = fichier binaire (généralement gardé dans .git/index) qui contient une liste ordonnées de chemins de fichiers, chacun avec les permissions et le SHA1 de l'objet blob; git ls-files peut vous montrer le contenu de l'index:
