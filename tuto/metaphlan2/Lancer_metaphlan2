@@ -1,0 +1,111 @@
+Tuto issu de https://bitbucket.org/biobakery/biobakery/wiki/metaphlan2
+
+1- Installer conda (https://bioinfo-fr.net/conda-le-meilleur-ami-du-bioinformaticien)
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+chmod +x Miniconda3-latest-Linux-x86_64.sh
+./Miniconda3-latest-Linux-x86_64.sh
+
+2- Créer un environnement
+conda create --name mon_environnement
+
+3- Aller dessus
+source activate mon_environnement 
+Pour quitter : deactivate
+
+4- Installer homebrew (http://linuxbrew.sh/)
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
+test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv)
+test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.bash_profile
+echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.profile
+
+5- Installer MetaPhlAn2
+brew tap biobakery/biobakery
+brew install metaphlan2
+//
+Pour conda : conda install metaphlan2
+
+6- Créer des profils taxonomiques :
+Toujours sur l'environnement conda, aller dans le répertoire où les fichiers sont (ici en fasta.gz)
+cd /home/galati/Téléchargements/metaphlan2_analysis
+metaphlan2.py /home/galati/Téléchargements/metaphlan2_analysis/SRS014476-Supragingival_plaque.fasta.gz --input_type fasta > SRS014476-Supragingival_plaque.txt
+(deux fichiers d'output)
+
+6bis- Pour lancer sur de nombreux fichiers, on peut boucler avec le langague bash :
+for f in SRS*.fasta.gz
+do
+    metaphlan2.py $f --input_type fasta --nproc 4 > ${f%.fasta.gz}_profile.txt
+done
+
+7- Création d'une table unique de tous ces fichiers
+merge_metaphlan_tables.py *_profile.txt > merged_abundance_table.txt
+
+8- Installation de hclust
+brew tap biobakery/biobakery
+brew install hclust2
+
+conda install -c bioconda hclust2
+conda install -c bioconda/label/cf201901 hclust2 
+
+9- Faire une heatmap avec hclust
+Faire une table de l'abondance des espèces uniquement :
+grep -E "(s__)|(^ID)" merged_abundance_table.txt | grep -v "t__" | sed 's/^.*s__//g' > merged_abundance_table_species.txt
+
+Génération de la heatmap des espèces
+hclust2.py -i merged_abundance_table_species.txt -o abundance_heatmap_species.png --ftop 25 --f_dist_f braycurtis --s_dist_f braycurtis --cell_aspect_ratio 0.5 -l --flabel_size 6 --slabel_size 6 --max_flabel_len 100 --max_slabel_len 100 --minv 0.1 --dpi 300
+
+10- Faire un cladograme
+brew tap biobakery/biobakery
+brew install graphlan
+
+conda install -c bioconda graphlan 
+conda install -c bioconda/label/cf201901 graphlan
+
+conda install -c bioconda export2graphlan
+conda install -c bioconda/label/cf201901 export2graphlan
+
+Créer des entrées GraPhlAn
+$ export2graphlan.py --skip_rows 1,2 -i merged_abundance_table.txt --tree merged_abundance.tree.txt --annotation merged_abundance.annot.txt --most_abundant 100 --abundance_threshold 1 --least_biomarkers 10 --annotations 5,6 --external_annotations 7 --min_clade_size 1
+
+Création du cladogramme
+graphlan_annotate.py --annot merged_abundance.annot.txt merged_abundance.tree.txt merged_abundance.xml
+graphlan.py --dpi 300 merged_abundance.xml merged_abundance.png --external_legends
+
+11- Heatmap au niveau des souches basé sur des marqueurs avec PanPhlAn
+Pour l'ensemble des fichiers mis à disposition dans le tuto :
+metaphlan2.py --input_type bowtie2out -t clade_specific_strain_tracker --clade s__Eubacterium_siraeum --min_ab 1.0 13530241_SF05.fasta.gz.bowtie2out.txt > 13530241_SF05.siraeum.txt
+metaphlan2.py --input_type bowtie2out -t clade_specific_strain_tracker --clade s__Eubacterium_siraeum --min_ab 1.0 13530241_SF06.fasta.gz.bowtie2out.txt > 13530241_SF06.siraeum.txt
+metaphlan2.py --input_type bowtie2out -t clade_specific_strain_tracker --clade s__Eubacterium_siraeum --min_ab 1.0 19272639_SF05.fasta.gz.bowtie2out.txt > 19272639_SF05.siraeum.txt
+metaphlan2.py --input_type bowtie2out -t clade_specific_strain_tracker --clade s__Eubacterium_siraeum --min_ab 1.0 19272639_SF06.fasta.gz.bowtie2out.txt > 19272639_SF06.siraeum.txt
+metaphlan2.py --input_type bowtie2out -t clade_specific_strain_tracker --clade s__Eubacterium_siraeum --min_ab 1.0 40476924_SF05.fasta.gz.bowtie2out.txt > 40476924_SF05.siraeum.txt
+metaphlan2.py --input_type bowtie2out -t clade_specific_strain_tracker --clade s__Eubacterium_siraeum --min_ab 1.0 40476924_SF06.fasta.gz.bowtie2out.txt > 40476924_SF06.siraeum.txt
+
+Merge des marqueurs d'abondance
+merge_metaphlan_tables.py *.siraeum.txt > siraeum_tracker.txt
+
+Création de la heatmap
+conda install -c conda-forge matplotlib 
+hclust2.py -i siraeum_tracker.txt -o siraeum_tracker.png --skip_rows 1 --f_dist_f hamming --no_flabels --dpi 300 --cell_aspect_ratio 0.01
+
+
+
+
+Question de Florentin :
+Example pour 1 fichier :
+metaphlan2.py /home/galati/Téléchargements/metaphlan2_analysis/SRS014476-Supragingival_plaque.fasta.gz --bowtie2out SRS014476-Supragingival_plaque.bowtie2.bz2 --input_type fasta > SRS014476-Supragingival_plaque.txt
+
+metaphlan2.py /home/galati/Téléchargements/metaphlan2_analysis/SRS014476-Supragingival_plaque.bowtie2.bz2 --nproc 1 -t reads_map --input_type bowtie2out > SRS014476-Supragingival_plaque-reads_maps.txt
+
+Pour boucler avec tous les fichiers du tuto:
+for f in SRS*.fasta.gz
+do
+    metaphlan2.py $f --bowtie2out ${f%%.*}.bowtie2.bz2 --input_type fasta > ${f%%.*}.txt
+done
+
+Puis :
+for f in SRS*.bowtie2.bz2
+do
+    metaphlan2.py $f -t reads_map --input_type bowtie2out > ${f%%.*}-read_maps.txt
+done
+
+merge_metaphlan_tables.py *-read_maps.txt > merged_readmaps_table.txt
