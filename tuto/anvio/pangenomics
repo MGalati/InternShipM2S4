@@ -1,0 +1,126 @@
+http://merenlab.org/tutorials/infant-gut/#chapter-v-pangenomics
+
+Pangenomique :
+avant toute chose il faut la base de données des profils fusionnés par anvio et la base de données des contigs anvio
+
+Import des données de e_faecalis
+anvi-import-collection additional-files/collections/e-faecalis.txt \
+                          -p PROFILE.db \
+                          -c CONTIGS.db \
+                          -C E_faecalis \
+                          --bins-info additional-files/collections/e-faecalis-info.txt
+
+Visualisation des base de données de contigs pour l'étude :
+ls additional-files/pangenomics/external-genomes/*db
+
+anvi-gen-genomes-storage -i additional-files/pangenomics/internal-genomes.txt \
+                            -e additional-files/pangenomics/external-genomes.txt \
+                            -o Enterococcus-GENOMES.db
+
+Upgrade de la base de données :
+anvi-migrate-db -t 12 /home/galati/Téléchargements/anvio/INFANT-GUT-TUTORIAL/additional-files/pangenomics/external-genomes/Enterococcus_faecalis_6240.db
+
+Caractérisation du pangenome :
+anvi-pan-genome -g Enterococcus-GENOMES.db \
+                   -n Enterococcus \
+                   -o PAN \
+                   --num-threads 10
+
+Affichage :
+anvi-display-pan -g Enterococcus-GENOMES.db \
+                    -p PAN/Enterococcus-PAN.db \
+                    --title "Enterococccus Pan"
+
+plus beau :
+anvi-import-state -p PAN/Enterococcus-PAN.db \
+                     --state additional-files/state-files/state-pan.json \
+                     --name default
+anvi-display-pan -g Enterococcus-GENOMES.db \
+                    -p PAN/Enterococcus-PAN.db \
+                    --title "Enterococccus Pan"
+
+(  File "/home/galati/miniconda3/envs/anvio/bin/anvi-display-pan", line 72, in <module>
+    d = interactive.Interactive(args)
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/interactive.py", line 128, in __init__
+    self.layers_additional_data_keys, self.layers_additional_data_dict = TableForLayerAdditionalData(self.args).get_all() if a_db_is_found else ([], {})
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/tables/miscdata.py", line 723, in get_all
+    keys_dict[group_name], data_dict[group_name] = self.get()
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/tables/miscdata.py", line 598, in get
+    d[additional_data_item_name][key] = eval(entry['data_type'])(value or self.nulls_per_type[entry['data_type']])
+ValueError: invalid literal for int() with base 10: '99.2805755395683')
+
+Ajouter l'identité moyenne des nucléotides :
+anvi-compute-ani -e additional-files/pangenomics/external-genomes.txt \
+                   -i additional-files/pangenomics/internal-genomes.txt \
+                   -o ANI \
+                   -T 8 \
+                   --pan-db PAN/Enterococcus-PAN.db
+
+anvi-display-pan -g Enterococcus-GENOMES.db \
+                    -p PAN/Enterococcus-PAN.db \
+                    --title "Enterococccus Pan"
+(  File "/home/galati/miniconda3/envs/anvio/bin/anvi-display-pan", line 72, in <module>
+    d = interactive.Interactive(args)
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/interactive.py", line 128, in __init__
+    self.layers_additional_data_keys, self.layers_additional_data_dict = TableForLayerAdditionalData(self.args).get_all() if a_db_is_found else ([], {})
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/tables/miscdata.py", line 723, in get_all
+    keys_dict[group_name], data_dict[group_name] = self.get()
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/tables/miscdata.py", line 598, in get
+    d[additional_data_item_name][key] = eval(entry['data_type'])(value or self.nulls_per_type[entry['data_type']])
+ValueError: invalid literal for int() with base 10: '99.2805755395683)
+
+Enrichissement des analyses fonctionnelles :
+anvi-import-misc-data -p PAN/Enterococcus-PAN.db \
+                         --target-data-table layers \
+                         additional-files/pangenomics/additional-layers-data.txt
+
+anvi-display-pan -g Enterococcus-GENOMES.db \
+                    -p PAN/Enterococcus-PAN.db \
+                    --title "Enterococccus Pan"
+(  File "/home/galati/miniconda3/envs/anvio/bin/anvi-display-pan", line 72, in <module>
+    d = interactive.Interactive(args)
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/interactive.py", line 128, in __init__
+    self.layers_additional_data_keys, self.layers_additional_data_dict = TableForLayerAdditionalData(self.args).get_all() if a_db_is_found else ([], {})
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/tables/miscdata.py", line 723, in get_all
+    keys_dict[group_name], data_dict[group_name] = self.get()
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/tables/miscdata.py", line 598, in get
+    d[additional_data_item_name][key] = eval(entry['data_type'])(value or self.nulls_per_type[entry['data_type']])
+ValueError: invalid literal for int() with base 10: '99.2805755395683')
+
+anvi-get-enriched-functions-per-pan-group -p PAN/Enterococcus-PAN.db \
+                                             -g Enterococcus-GENOMES.db \
+                                             --category clade \
+                                             --annotation-source COG_FUNCTION \
+                                             -o functional-enrichment.txt
+
+Découpage des gènes mis en boite :
+anvi-import-collection additional-files/pangenomics/pan-collection.txt \
+                          --bins-info additional-files/pangenomics/pan-collection-info.txt \
+                          -p PAN/Enterococcus-PAN.db \
+                          -C default  
+anvi-display-pan -g Enterococcus-GENOMES.db \
+                    -p PAN/Enterococcus-PAN.db \
+                    --title "Enterococccus Pan"
+(  File "/home/galati/miniconda3/envs/anvio/bin/anvi-display-pan", line 72, in <module>
+    d = interactive.Interactive(args)
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/interactive.py", line 128, in __init__
+    self.layers_additional_data_keys, self.layers_additional_data_dict = TableForLayerAdditionalData(self.args).get_all() if a_db_is_found else ([], {})
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/tables/miscdata.py", line 723, in get_all
+    keys_dict[group_name], data_dict[group_name] = self.get()
+  File "/home/galati/miniconda3/envs/anvio/lib/python3.6/site-packages/anvio/tables/miscdata.py", line 598, in get
+    d[additional_data_item_name][key] = eval(entry['data_type'])(value or self.nulls_per_type[entry['data_type']])
+ValueError: invalid literal for int() with base 10: '99.2805755395683'
+)
+
+Résumer un pangenome :
+anvi-summarize -p PAN/Enterococcus-PAN.db \
+                  -g Enterococcus-GENOMES.db \
+                  -C default \
+                  -o PAN_SUMMARY
+
+open PAN_SUMMARY/index.html
+Téléchargement de l'output et :
+gzip -d PAN_SUMMARY/Enterococcus_protein_clusters_summary.txt.gz
+
+
+
