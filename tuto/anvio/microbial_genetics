@@ -1,0 +1,87 @@
+http://merenlab.org/tutorials/infant-gut/#chapter-iii-phylogenomics
+
+Génétique des populations microbiennes
+Le but est de faire le profil des variations des "simples nucléotides" pour E. faecalis
+
+Chargement de la collection des données :
+anvi-import-collection additional-files/collections/merens.txt \
+                          -p PROFILE.db \
+                          -c CONTIGS.db \
+                          -C default \
+                          --bins-info additional-files/collections/merens-info.txt
+
+Import de la taxonomie pour l'appel des gènes
+anvi-import-taxonomy-for-genes -c CONTIGS.db \
+                       -i additional-files/centrifuge-files/centrifuge_report.tsv \
+                           additional-files/centrifuge-files/centrifuge_hits.tsv \
+                       -p centrifuge
+
+Import de "state" pour un aspect visuel ?
+anvi-import-state --state additional-files/state-files/state-merged.json \
+                    --name default \
+                    -p PROFILE.db
+
+anvi-split -p PROFILE.db \
+             -c CONTIGS.db \
+             -C default \
+             -b E_facealis -o MAGs
+
+On a crée une base de données pour le bin de E_facealis !
+
+anvi-script-get-collection-info -p MAGs/E_facealis/PROFILE.db \
+                                  -c MAGs/E_facealis/CONTIGS.db \
+                                  -C DEFAULT
+
+Visualiser le bin :
+anvi-interactive -p MAGs/E_facealis/PROFILE.db \
+                   -c MAGs/E_facealis/CONTIGS.db
+
+Génération du fichers de sortie des SNVs
+anvi-gen-variability-profile -c MAGs/E_facealis/CONTIGS.db \
+                               -p MAGs/E_facealis/PROFILE.db \
+                               -C DEFAULT \
+                               -b ALL_SPLITS \
+                               --samples-of-interest additional-files/samples.txt \
+                               --min-coverage-in-each-sample 20 \
+                               --include-split-names \
+                               --quince-mode \
+                               -o E-faecalis-SNVs.txt
+
+Visualiser les profils de SNV avec R :
+Téléchargement d'un script
+wget https://raw.githubusercontent.com/meren/anvio-methods-paper-analyses/a57b0cee07e9dd6fc59892114f2ad5bb9df78215/SHARON_et_al/VARIABILITY_REPORTS/02_GEN_FIGURE_SUMMARY.R \
+        -O visualize-SNVs.R
+chmod +x visualize-SNVs.R
+
+anvi-gen-variability-profile -c MAGs/E_facealis/CONTIGS.db \
+                               -p MAGs/E_facealis/PROFILE.db \
+                               -C DEFAULT \
+                               -b ALL_SPLITS \
+                               --samples-of-interest additional-files/samples.txt \
+                               -o E-faecalis-SNV-density.txt
+
+Visualiser l'output : 
+./visualize-SNVs.R E-faecalis-SNVs.txt E-faecalis-SNV-density.txt 150 2870000
+Puis voir le PDF
+
+
+Visualisation avec anvi'o :
+anvi-import-state -p e_faecalis_snvs/profile.db \
+                    --state additional-files/state-files/state-snvs.json \
+                    --name default
+anvi-interactive -d e_faecalis_snvs/view.txt \
+                 -s e_faecalis_snvs/samples.db \
+                 -t e_faecalis_snvs/tree.txt \
+                 -p e_faecalis_snvs/profile.db \
+                 --title "SNV Profile for the E. faecalis bin" \
+                 --manual
+
+Visualiser l'output pour le bin en position 686 :
+awk '{if(NR == 1 || $2 == 686) print $2 " " $3 " " $4 " " $6 " " $14 " " $15 " " $25}' E-faecalis-SNVs.txt | column -t
+
+et en position 80 :
+awk '{if(NR == 1 || $2 == 80) print $2 " " $3 " " $4 " " $6 " " $14 " " $15 " " $25}' E-faecalis-SNVs.txt | column -t
+
+Visualiser avec un fichier XML :
+anvi-gen-variability-network -i E-faecalis-SNVs.txt \
+                             -o E-faecalis-SNVs.gexf
