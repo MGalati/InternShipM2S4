@@ -1,0 +1,58 @@
+Avoir toutes les données qu'il faut !
+anvi-import-collection additional-files/collections/merens.txt \
+                       -p PROFILE.db \
+                       -c CONTIGS.db \
+                       -C default \
+                       --bins-info additional-files/collections/merens-info.txt
+
+anvi-show-collections-and-bins -p PROFILE.db
+
+Selection de gènes à partir d'un profil HMM :
+anvi-get-sequences-for-hmm-hits -c CONTIGS.db \
+                                -p PROFILE.db \
+                                -o seqs-for-phylogenomics.fa \
+                                --list-hmm-sources
+
+Inspection des gènes du profil HMM Campbell_et_al:
+anvi-get-sequences-for-hmm-hits -c CONTIGS.db \
+                                -p PROFILE.db \
+                                -o seqs-for-phylogenomics.fa \
+                                --hmm-source Campbell_et_al \
+                                --list-available-gene-names
+
+Récupérer tous les gênes dans default :
+anvi-get-sequences-for-hmm-hits -c CONTIGS.db \
+                                -p PROFILE.db \
+                                -o seqs-for-phylogenomics.fa \
+                                --hmm-source Campbell_et_al \
+                                -C default \
+                                --gene-names Ribosomal_L1,Ribosomal_L2,Ribosomal_L3,Ribosomal_L4,Ribosomal_L5,Ribosomal_L6
+
+Lecture du FASTA :
+less seqs-for-phylogenomics.fa
+
+Concatenation des gênes :
+anvi-get-sequences-for-hmm-hits -c CONTIGS.db \
+                                -p PROFILE.db \
+                                -o seqs-for-phylogenomics.fa \
+                                --hmm-source Campbell_et_al \
+                                -C default \
+                                --gene-names Ribosomal_L1,Ribosomal_L2,Ribosomal_L3,Ribosomal_L4,Ribosomal_L5,Ribosomal_L6 \
+                                --concatenate-genes \
+                                --return-best-hit \
+                                --get-aa-sequences
+
+Faire un arbre phylogénétique :
+anvi-gen-phylogenomic-tree -f seqs-for-phylogenomics.fa \
+                           -o phylogenomic-tree.txt
+
+anvi-interactive --tree phylogenomic-tree.txt \
+                 -p temp-profile.db \
+                 --title "Pylogenomics of IGD Bins" \
+                 --manual
+
+Voir tout distribué avec les échantillons :
+ anvi-interactive -p PROFILE.db \
+                  -c CONTIGS.db \
+                  -C default \
+                  --tree phylogenomic-tree.txt
