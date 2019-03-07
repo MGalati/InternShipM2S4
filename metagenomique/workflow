@@ -1,0 +1,105 @@
+Démarche et notes pour la mise en place du workflow métabarcoding
+__________________________________________________________________________
+
+Installation de paquage nécessaire au workflow :
+conda install -c bioconda snakemake 
+conda install -c bioconda fastqc 
+conda install -c conda-forge rsync 
+conda install -c bioconda vsearch
+conda install -c bioconda fastqc
+conda install -c bioconda multiqc
+conda install -c bioconda atropos 
+
+Pas besoin de tout installer manuellement, il suffit d'utiliser le fichier d'environnemnt conda associé à ce workflow :
+Export de l'environnement conda : conda env export -n workflow > workflow.yml
+__________________________________________________________________________
+Création d'un dossier de travail :
+mkdir workflow
+cd workflow
+
+Création de l'environnement de travail :
+conda env create --name workflow
+
+Création d'un fichier d'environnement :
+gedit workflow.yml
+__________________________________________________________________________
+
+Accès aux fichiers de reads :
+cd /homedir/constancias/work/saliva_raw/raw
+
+Copie d'un échantillon réduit de reads pour la construction du workflow :
+cp 410*_SALIVA_DNA* /homedir/galati/subsample/raw
+cp 412*_SALIVA_DNA* /homedir/galati/subsample/raw
+
+Rename automatique des noms de fichiers d'échantillons :
+for f in *.fastq ; do echo mv ${f} $(echo "${f}" | cut -d "_" -f 1,2,3,6).fastq ; done
+
+Sous échantillonage avec vserach :
+Doc : http://manpages.ubuntu.com/manpages/bionic/man1/vsearch.1.html
+module purge
+module load system/conda/5.1.0 
+gzip -d *.gz
+
+Création d'une liste des noms de fichiers du dossier contenant les fichiers bruts :
+dir /homedir/galati/subsample/raw *.fastq >listfile.txt
+
+Sous échantillonage : fichier /homedir/galati/subsample/raw/sub.sh
+A lancer avec > qsub sub.sh
+#$ -q bigmem.q
+#$ -N subsampling_workflow
+#$ -M mathias.galati@cirad.fr
+#$ -pe parallel_smp 15
+#$ -l mem_free=6G
+#$ -V
+#$ -cwd
+
+echo test
+
+for NAME in `awk '{print $1}' /homedir/galati/subsample/raw/listfile.txt`
+
+do
+
+echo "#### Analyzing " $NAME
+
+vsearch --fastx_subsample /homedir/galati/subsample/raw/$NAME --fastaout /homedir/galati/subsample/$NAME --sample_size 10000 --randseed 0
+
+done
+__________________________________________________________________________
+
+Etape de check de qualité des données avec FastQC :
+Fichier /homedir/galati/subsample/qc.sh : > qsub qc.sh
+#!/bin/bash
+
+#$ -q normal.q
+#$ -N subsampling_workflow
+#$ -M mathias.galati@cirad.fr
+#$ -pe parallel_smp 15
+#$ -l mem_free=6G
+#$ -V
+#$ -cwd
+
+mkdir /homedir/galati/subsample/raw/qc/
+module purge
+module load system/conda/5.1.0
+
+source activate workflow
+fastqc /homedir/galati/subsample/raw/*.fastq -t $NSLOTS -o /homedir/galati/subsample/raw/qc/
+cd /homedir/galati/subsample/raw/qc/
+multiqc .
+
+Transfert du report multiqc sur le pc :
+Depuis un nouveau terminal : cd ~
+scp galati@cc2-login.cirad.fr:/homedir/galati/subsample/raw/qc/multiqc_report.html /home/galati/Téléchargements/
+__________________________________________________________________________
+
+Récupération d'un index des noms d'échantillons :
+ls *.fastq | cut -c 1-15 > samples_names.txt (marche bien pour le sous échantillonage
+ls *.fastq | cut -d_ -f1,2,3 > samples_names.txt (plus utile pour travailler avec tous les fichiers d'échantillon car garde les champs 1, 2 et 3 qui nous intéresse de manière générique)
+__________________________________________________________________________
+
+Important dans l'execution du snakefile : module load system/conda/5.1.0
+
+Etape avec atropos :
+https://slowkow.com/notes/snakemake-tutorial/
+
+cp /homedir/constancias/work/interfaces/180914_M00842_0310_000000000-C3GBT.zip /homedir/galati/data/interfaces
