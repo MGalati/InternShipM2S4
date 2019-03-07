@@ -1,0 +1,133 @@
+Tuto issu de http://merenlab.org/tutorials/infant-gut/
+
+1- Installation :
+http://merenlab.org/2016/06/26/installation-v2/
+conda install -c bioconda -c conda-forge anvio diamond bwaconda install -c bioconda -c conda-forge anvio diamond bwa
+Version : anvi-interactive -v
+Petit test : anvi-self-test
+
+2- Téléchargement des données 
+wget https://ndownloader.figshare.com/files/12898007 -O INFANT-GUT-TUTORIAL.tar.gz
+tar -zxvf INFANT-GUT-TUTORIAL.tar.gz && cd INFANT-GUT-TUTORIALls
+
+3- Résolution de génomes métagnéomique
+UPGRADE sa database : anvi-migrate-db -t 30 PROFILE.db
+Ouvrir l'interface dans navigateur : anvi-interactive -p PROFILE.db -c CONTIGS.db 
+Doit s'ouvrir dans Google chrome, puis cliquer dans l'interface sur Draw
+
+4- Importation de la taxonomy pour les gênes
+anvi-import-taxonomy-for-genes -c CONTIGS.db \
+                               -p centrifuge \
+                               -i additional-files/centrifuge-files/centrifuge_report.tsv \
+                                  additional-files/centrifuge-files/centrifuge_hits.tsv
+
+Ouvrir l'interface
+
+5- Importation de la taxonomie pour les layers (couches)
+
+6- Binning
+90+ de complétion et 10- de redondance recommandées
+Store bin collection + generate static summary page
+
+7- Renommer les bins
+anvi-rename-bins -p PROFILE.db -c CONTIGS.db  \
+ 						--collection-to-read default  \
+ 						--collection-to-write MAGs  \
+ 						--call-MAGs --prefix IGD \
+ 						--size-for-MAG 100 \
+ 						--report-file REPORT
+
+Résumé :
+anvi-summarize -p PROFILE.db -c CONTIGS.db -C MAGs -o SUMMARY_MAGs
+
+Pour raffiner les bins : Exemple
+anvi-refine -p PROFILE.db -c CONTIGS.db -C MAGs -b IGD_Bin_00012
+
+8- Importer des resultats externes de binning
+anvi-import-collection -c CONTIGS.db \
+                       -p PROFILE.db \
+                       -C CONCOCT \
+                       --contigs-mode \
+                       additional-files/external-binning-results/CONCOCT.txt
+
+anvi-show-collections-and-bins -p PROFILE.db
+
+Display les bins d'une collection
+anvi-script-get-collection-info -p PROFILE.db \
+                                -c CONTIGS.db \
+                                -C CONCOCT
+
+Lancer l'interface :
+anvi-interactive -p PROFILE.db \
+                 -c CONTIGS.db \
+                 --collection-autoload CONCOCT
+Visalisation : head collections.tsv | column -t
+
+Gérer des données additionnelles :
+anvi-import-misc-data collections.tsv \
+                      -p PROFILE.db \
+                      -t items
+anvi-interactive -p PROFILE.db -c CONTIGS.db
+anvi-delete-misc-data -p PROFILE.db \
+                      -t items \
+                      --just-do-it
+
+Import d'un formatage pour les données :
+anvi-import-state --state additional-files/state-files/state-merged.json \
+                  --name default \
+                  -p PROFILE.db
+
+Relancer l'interface :
+anvi-interactive -p PROFILE.db \
+                 -c CONTIGS.db \
+                 -A collections.tsv
+
+Traitement manuel des sorties automatique de binning :
+Import des données
+anvi-import-collection additional-files/external-binning-results/MAXBIN.txt \
+                       -c CONTIGS.db \
+                       -p PROFILE.db \
+                       -C MAXBIN \
+                       --contigs-mode
+Résumé :
+anvi-summarize -c CONTIGS.db \
+               -p PROFILE.db \
+               -C MAXBIN \
+               -o MAXBIN-SUMMARY \
+               --quick
+
+Avoir les infos de la collection :
+anvi-script-get-collection-info -p PROFILE.db \
+                                -c CONTIGS.db \
+                                -C MAXBIN
+
+Interface :
+anvi-interactive -p PROFILE.db \
+                 -c CONTIGS.db \
+                 -C MAXBIN
+
+Raffinement :
+anvi-refine -p PROFILE.db \
+            -c CONTIGS.db \
+            -C MAXBIN \
+            -b maxbin_008
+
+Combien de génomes bactériens ?
+anvi-display-contigs-stats CONTIGS.db
+
+Find 5 clusters :
+anvi-cluster-with-concoct -p PROFILE.db \
+                          -c CONTIGS.db \
+                          --num-clusters 5 \
+anvi-interactive -p PROFILE.db \
+                 -c CONTIGS.db \
+                 --title 'Infant Gut Time Series by Sharon et al. [w/ 5 CONCOCT clusters]' \
+                 --collection-autoload CONCOCT_C5
+                 -C CONCOCT_C5
+
+Raffinement :
+anvi-refine -p PROFILE.db \
+            -c CONTIGS.db \
+            -C CONCOCT_C5 \
+            -b Bin_1
+
