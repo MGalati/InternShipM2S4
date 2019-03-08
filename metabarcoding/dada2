@@ -2,15 +2,25 @@ Récupération des fichiers fastq.gz
 scp galati@cc2-login.cirad.fr:/homedir/galati/data/interfaces/180914_M00842_0310_000000000-C3GBT/Data/Intensities/BaseCalls/qc/GC-BHS-1_S259_L001_R2_001_fastqc.html /home/galati/Téléchargements/
 
 scp galati@cc2-login.cirad.fr:/homedir/galati/data/interfaces/180918_M00842_0311_000000000-C3B4P/Data/Intensities/BaseCalls/qc/R1F37_S372_L001_R2_001_fastqc.html /home/galati/Téléchargements/
-300 its 180914
-256 16s 180918
+
+Détermination de la nature des données par fastqc/multiqc :
+longueur de reads de 300bp -> its -> dossier "180914"
+longueur de reads de 256bp -> 16s -> dossier "180918"
 ___________________________________________________________________________
 
 Initialisation dans un noeud de travail.
 qrsh -q normal.q
 
-Activation de l'environnement conda (Fichier yml à venir)
+Téléchargement de l'environnement conda
+wget https://data.qiime2.org/distro/core/qiime2-2018.11-py35-linux-conda.yml
+conda env create -n qiime --file qiime2-2018.11-py35-linux-conda.yml
+rm qiime2-2018.11-py35-linux-conda.yml
+
+Activation de l'environnement conda
 conda activate qiime2-2018.11
+
+Récupération d'un fichier contenant une liste des échantilons :
+ls *.gz | cut -d "_" -f 1,2 > samples_names.txt
 
 Suppression des adapteurs:
 *16S
