@@ -48,6 +48,31 @@ cutadapt \
     --max-n 0  \
     $IN$sample*R1*gz $IN$sample*R2*gz \
     > $OUT$sample"_cutadapt_log.txt"
+    
+/!\ cutadapt: error: Too many parameters.
+#### Removing adapter ###  CB-ABN-3_S29
+Run "cutadapt --help" to see command-line options.
+See https://cutadapt.readthedocs.io/ for full documentation.
+
+Passage à l'outil dans Qiime :
+*16S
+qiime cutadapt trim-paired \
+        --i-demultiplexed-sequences demux-paired-end.qza \
+        --p-cores 1 \
+        --p-front-f NNNNCCTACGGGNGGCWGCAG \
+        --p-front-r NNNNGACTACHVGGGTATCTAATCC \
+        --p-error-rate 0.1 \
+        --o-trimmed-sequences demux-paired-end-trimmed.qza \
+        
+*ITS
+qiime cutadapt trim-paired \
+        --i-demultiplexed-sequences demux-paired-end.qza \
+        --p-cores 1 \
+        --p-front-f NNNNGTGAATCATCGAATCTTTGAA \
+        --p-front-r NNNNTCCTCCGCTTATTGATATGC \
+        --p-error-rate 0.1 \
+        --o-trimmed-sequences demux-paired-end-trimmed.qza \
+
 _________________________________________________________________________
 
 Primer ???
