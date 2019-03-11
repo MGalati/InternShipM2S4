@@ -11,6 +11,9 @@ ___________________________________________________________________________
 Initialisation dans un noeud de travail.
 qrsh -q normal.q
 
+Activation du module conda sur le serveur
+module load system/conda/5.1.0
+
 Téléchargement de l'environnement conda
 wget https://data.qiime2.org/distro/core/qiime2-2018.11-py35-linux-conda.yml
 conda env create -n qiime --file qiime2-2018.11-py35-linux-conda.yml
@@ -21,6 +24,21 @@ conda activate qiime2-2018.11
 
 Récupération d'un fichier contenant une liste des échantilons :
 ls *.gz | cut -d "_" -f 1,2 > samples_names.txt
+_________________________________________________________________________
+
+Import des fichiers fastq.gz: (dans les dossiers dédiés)
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path /homedir/galati/data/16S \
+  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
+  --output-path demux-paired-end.qza
+
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path /homedir/galati/data/ITS \
+  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
+  --output-path demux-paired-end.qza
+___________________________________________________________________________
 
 Suppression des adapteurs:
 *16S
@@ -75,25 +93,6 @@ qiime cutadapt trim-paired \
 
 _________________________________________________________________________
 
-Primer ???
-FW 5’ TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG-target specific sequence 3'
--> sequencing primer binding site 
-_________________________________________________________________________
-
-Import des fichiers fastq.gz: (dans les dossiers dédiés)
-qiime tools import \
-  --type 'SampleData[PairedEndSequencesWithQuality]' \
-  --input-path /homedir/galati/data/16S \
-  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
-  --output-path demux-paired-end.qza
-
-qiime tools import \
-  --type 'SampleData[PairedEndSequencesWithQuality]' \
-  --input-path /homedir/galati/data/ITS \
-  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
-  --output-path demux-paired-end.qza
-_________________________________________________________________________
-
 Analyse des données et vizualisation:
 qiime demux summarize --i-data demux-paired-end.qza --o-visualization demux.qzv
 (dans les deux dossiers)
@@ -102,4 +101,20 @@ qiime tools view demux.qzv -> Ne marche pas donc téléchargement en local et vi
 scp galati@cc2-login.cirad.fr:/homedir/galati/metab/16S/demux.qzv /home/galati/Téléchargements/
 
 scp galati@cc2-login.cirad.fr:/homedir/galati/metab/ITS/demux.qzv /home/galati/Téléchargements/
+
+A ouvrir dans un navigateur
 _________________________________________________________________________
+
+qiime dada2 denoise-paired --i-demultiplexed-seqs demux-paired-end.qza \
+                           --p-trunc-len-f 0 \
+                           --p-trunc-len-r 240 \ #Quality Score decreases from 240pb for the reverse reads
+                           --p-max-ee 2.0 \ #default value : all the reads with number of exepcted errors higher than 2.0 will be discarded
+                           --p-trunc-q 10 \ #reads are truncated at the first instance of a quality score less than or equal to 10
+                           --p-n-reads-learn 1000000 \ #default value : it's the number of read to use during the training of error model 
+                           --p-n-threads ${NSLOTS} \ #default value. When =0, it uses all the available cores
+                           --p-chimera-method consensus\ #default value : chimeras are detected in samples individually, and sequences found chimeric in a sufficient fraction of samples are removed
+                           --o-representative-sequences rep-seq-dada2.qza \
+                           --o-table table-dada2.qza \
+                           --o-denoising-stats stats-dada2.qza \
+                           --verbose
+ qiime dada2 denoise-paired --i-demultiplexed-seqs demux-paired-end.qza --p-trunc-len-f 0 --p-trunc-len-r 240 --p-max-ee 2.0 --p-trunc-q 10 --p-n-reads-learn 1000000 --p-n-threads 6 --p-chimera-method consensus --o-representative-sequences rep-seq-dada2.qza --o-table table-dada2.qza --o-denoising-stats stats-dada2.qza --verbose
