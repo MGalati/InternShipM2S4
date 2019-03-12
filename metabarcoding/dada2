@@ -117,4 +117,26 @@ qiime dada2 denoise-paired --i-demultiplexed-seqs demux-paired-end.qza \
                            --o-table table-dada2.qza \
                            --o-denoising-stats stats-dada2.qza \
                            --verbose
- qiime dada2 denoise-paired --i-demultiplexed-seqs demux-paired-end.qza --p-trunc-len-f 0 --p-trunc-len-r 240 --p-max-ee 2.0 --p-trunc-q 10 --p-n-reads-learn 1000000 --p-n-threads 6 --p-chimera-method consensus --o-representative-sequences rep-seq-dada2.qza --o-table table-dada2.qza --o-denoising-stats stats-dada2.qza --verbose
+
+scp galati@cc2-login.cirad.fr:/homedir/galati/data/16S/demux-trimmed.qzv /home/galati/Téléchargements/
+16S = reverse 207
+qiime dada2 denoise-paired --i-demultiplexed-seqs demux-paired-end.qza --p-trunc-len-f 0 --p-trunc-len-r 207 --p-max-ee 2.0 --p-trunc-q 10 --p-n-reads-learn 1000000 --p-n-threads 15 --p-chimera-method consensus --o-representative-sequences rep-seq-dada2.qza --o-table table-dada2.qza --o-denoising-stats stats-dada2.qza --verbose
+
+
+scp galati@cc2-login.cirad.fr:/homedir/galati/data/ITS/demux-trimmed.qzv /home/galati/Téléchargements/
+ITS = forward 296 / reverse 241
+qiime dada2 denoise-paired --i-demultiplexed-seqs demux-paired-end.qza --p-trunc-len-f 296 --p-trunc-len-r 241 --p-max-ee 2.0 --p-trunc-q 10 --p-n-reads-learn 1000000 --p-n-threads 15 --p-chimera-method consensus --o-representative-sequences rep-seq-dada2.qza --o-table table-dada2.qza --o-denoising-stats stats-dada2.qza --verbose
+_________________________________________________________________________
+
+Contruction de la phylognéie des ASV avec FastTree
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --p-n-threads 0\
+  --i-sequences rep-seqs-dada2.qza \
+  --o-alignment phylogeny/aligned-rep-seqs.qza \
+  --o-masked-alignment phylogeny/masked-aligned-rep-seqs.qza \
+  --o-tree phylogeny/unrooted-tree.qza \
+  --o-rooted-tree phylogeny/rooted-tree.qza \
+--verbose
+
+
+wget -c -O "silva-132-99-nb-classifier.qza" "https://data.qiime2.org/2018.11/common/silva-132-99-nb-classifier.qza"
