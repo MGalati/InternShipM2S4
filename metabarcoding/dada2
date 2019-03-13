@@ -68,6 +68,10 @@ Formater les noms et les extensions :
 for f in *.fq.gz ; do mv $f $(echo $f | cut -d "_" -f 1,2,3,4,5).fastq.gz ; done ;
 _________________________________________________________________________
 
+Pour ITS :
+Pas de R2 à associer à GC-CBN-1_S313_L001_R1_001.fastq.gz
+On 
+
 Import des fichiers fastq.gz: (dans les dossiers dédiés)
 qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
@@ -146,7 +150,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
   --o-masked-alignment phylogeny/masked-aligned-rep-seqs.qza \
   --o-tree phylogeny/unrooted-tree.qza \
   --o-rooted-tree phylogeny/rooted-tree.qza \
---verbose
+  --verbose
 
 
 wget -c -O "silva-132-99-nb-classifier.qza" "https://data.qiime2.org/2018.11/common/silva-132-99-nb-classifier.qza"
