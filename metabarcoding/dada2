@@ -24,55 +24,65 @@ conda activate qiime2-2018.11
 
 Récupération d'un fichier contenant une liste des échantilons :
 ls *.gz | cut -d "_" -f 1,2 > samples_names.txt
+_____________________________________________________________________________
+
+Suppression des adapters:
+*ITS -> trimgalore.sh
+IN=/homedir/galati/data/ITS/
+OUT=/homedir/galati/data/ITS_adapter/
+
+for i in $IN*_L001_R1_001.fastq.gz
+do
+    prefix=$(basename $i _L001_R1_001.fastq.gz)
+    # print which sample is being processed
+ls ${IN}${prefix}*_R1*.fastq* ${IN}${prefix}*_R2*.fastq*
+
+    echo "###Trim galore Sample" $prefix "Start###"
+trim_galore --paired -q 0 --nextera --length 0 $IN${prefix}*_R1*.fastq* $IN${prefix}*_R2*.fastq* -o $OUT
+    echo "###Trim galore Sample" $prefix "DONE###"
+
+done
+
+*16S -> trimgalore.sh
+IN=/homedir/galati/data/16S/
+OUT=/homedir/galati/data/16S_adapter/
+
+for i in $IN*_L001_R1_001.fastq.gz
+do
+    prefix=$(basename $i _L001_R1_001.fastq.gz)
+    # print which sample is being processed
+ls ${IN}${prefix}*_R1*.fastq* ${IN}${prefix}*_R2*.fastq*
+
+    echo "###Trim galore Sample" $prefix "Start###"
+trim_galore --paired -q 0 --nextera --length 0 $IN${prefix}*_R1*.fastq* $IN${prefix}*_R2*.fastq* -o $OUT
+    echo "###Trim galore Sample" $prefix "DONE###"
+    
+done
+
+Changer juste l'extension des fichiers :
+for f in *.fq.gz; do 
+    mv -- "$f" "${f%.fq.gz}.fastq.gz"
+done
+
+Formater les noms et les extensions :
+for f in *.fq.gz ; do mv $f $(echo $f | cut -d "_" -f 1,2,3,4,5).fastq.gz ; done ;
 _________________________________________________________________________
 
 Import des fichiers fastq.gz: (dans les dossiers dédiés)
 qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
-  --input-path /homedir/galati/data/16S \
+  --input-path /homedir/galati/data/16S_adapter \
   --input-format CasavaOneEightSingleLanePerSampleDirFmt \
-  --output-path demux-paired-end.qza
+  --output-path /homedir/galati/data/16S_demux-paired-end.qza
 
 qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
-  --input-path /homedir/galati/data/ITS \
+  --input-path /homedir/galati/data/ITS_adapter \
   --input-format CasavaOneEightSingleLanePerSampleDirFmt \
-  --output-path demux-paired-end.qza
+  --output-path /homedir/galati/data/ITS_demux-paired-end.qza
 ___________________________________________________________________________
 
-Suppression des adapteurs:
-*16S
-cutadapt \
-    --pair-filter any \
-    --no-indels \
-    --discard-untrimmed \
-    -g NNNNCCTACGGGNGGCWGCAG \
-    -G NNNNGACTACHVGGGTATCTAATCC \
-    -o $OUT$sample"_R1_001.fastq.gz" \
-    -p $OUT$sample"_R2_001.fastq.gz" \
-    --max-n 0  \
-    $IN$sample*R1*gz $IN$sample*R2*gz \
-    > $OUT$sample"_cutadapt_log.txt" 
-
-*ITS
-cutadapt \
-    --pair-filter any \
-    --no-indels \
-    --discard-untrimmed \
-    -g NNNNGTGAATCATCGAATCTTTGAA \
-    -G NNNNTCCTCCGCTTATTGATATGC \ 
-    -o $OUT$sample"_R1_001.fastq.gz" \
-    -p $OUT$sample"_R2_001.fastq.gz" \
-    --max-n 0  \
-    $IN$sample*R1*gz $IN$sample*R2*gz \
-    > $OUT$sample"_cutadapt_log.txt"
-    
-/!\ cutadapt: error: Too many parameters.
-#### Removing adapter ###  CB-ABN-3_S29
-Run "cutadapt --help" to see command-line options.
-See https://cutadapt.readthedocs.io/ for full documentation.
-
-Passage à l'outil dans Qiime :
+Suppression des primers:
 *16S
 qiime cutadapt trim-paired \
         --i-demultiplexed-sequences demux-paired-end.qza \
