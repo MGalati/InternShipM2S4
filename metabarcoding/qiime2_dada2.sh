@@ -81,7 +81,13 @@ qiime cutadapt trim-paired \
         --p-front-r NNNNTCCTCCGCTTATTGATATGC \
         --p-error-rate 0.1 \
         --o-trimmed-sequences ITS_demux-paired-end-trimmed.qza \
-        
+
+echo "Fichiers de visualisation des données"
+qiime demux summarize --i-data ITS_demux-paired-end.qza --o-visualization ITS_demux.qzv
+qiime demux summarize --i-data 16S_demux-paired-end.qza --o-visualization 16S_demux.qzv
+scp galati@cc2-login.cirad.fr:/homedir/galati/data/ITS_demux.qzv /home/galati/Téléchargements/
+scp galati@cc2-login.cirad.fr:/homedir/galati/data/16S_demux.qzv /home/galati/Téléchargements/
+
 echo "Denoising 16S"
 qiime dada2 denoise-paired --i-demultiplexed-seqs 16S_demux-paired-end.qza \
                            --p-trunc-len-f 0 \
@@ -95,11 +101,11 @@ qiime dada2 denoise-paired --i-demultiplexed-seqs 16S_demux-paired-end.qza \
                            --o-table 16S_table-dada2.qza \
                            --o-denoising-stats 16S_stats-dada2.qza \
                            --verbose \
-                           
+
 echo "Denoising ITS"
 qiime dada2 denoise-paired --i-demultiplexed-seqs ITS_demux-paired-end.qza \
-                           --p-trunc-len-f 296 \
-                           --p-trunc-len-r 241 \ #Quality Score decreases from 240pb for the reverse reads
+                           --p-trunc-len-f 0 \
+                           --p-trunc-len-r 220 \ #Quality Score decreases from 240pb for the reverse reads
                            --p-max-ee 2.0 \ #default value : all the reads with number of exepcted errors higher than 2.0 will be discarded
                            --p-trunc-q 10 \ #reads are truncated at the first instance of a quality score less than or equal to 10
                            --p-n-reads-learn 1000000 \ #default value : it's the number of read to use during the training of error model 
@@ -112,7 +118,7 @@ qiime dada2 denoise-paired --i-demultiplexed-seqs ITS_demux-paired-end.qza \
         
 echo "Phylogénie 16S"
 qiime phylogeny align-to-tree-mafft-fasttree \
-  --p-n-threads 0\
+  --p-n-threads 0 \
   --i-sequences 16S_rep-seqs-dada2.qza \
   --o-alignment phylogeny/16S_aligned-rep-seqs.qza \
   --o-masked-alignment phylogeny/16S_masked-aligned-rep-seqs.qza \
@@ -122,7 +128,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
   
 echo "Phylogénie ITS"  
 qiime phylogeny align-to-tree-mafft-fasttree \
-  --p-n-threads 0\
+  --p-n-threads 0 \
   --i-sequences ITS_rep-seqs-dada2.qza \
   --o-alignment phylogeny/ITS_aligned-rep-seqs.qza \
   --o-masked-alignment phylogeny/ITS_masked-aligned-rep-seqs.qza \
