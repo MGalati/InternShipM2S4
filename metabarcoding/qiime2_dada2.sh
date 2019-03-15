@@ -119,7 +119,7 @@ qiime dada2 denoise-paired --i-demultiplexed-seqs ITS_demux-paired-end.qza \
 echo "Phylogénie 16S"
 qiime phylogeny align-to-tree-mafft-fasttree \
   --p-n-threads 0 \
-  --i-sequences 16S_rep-seqs-dada2.qza \
+  --i-sequences 16S_rep-seq-dada2.qza \
   --o-alignment phylogeny/16S_aligned-rep-seqs.qza \
   --o-masked-alignment phylogeny/16S_masked-aligned-rep-seqs.qza \
   --o-tree phylogeny/16S_unrooted-tree.qza \
@@ -129,7 +129,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 echo "Phylogénie ITS"  
 qiime phylogeny align-to-tree-mafft-fasttree \
   --p-n-threads 0 \
-  --i-sequences ITS_rep-seqs-dada2.qza \
+  --i-sequences ITS_rep-seq-dada2.qza \
   --o-alignment phylogeny/ITS_aligned-rep-seqs.qza \
   --o-masked-alignment phylogeny/ITS_masked-aligned-rep-seqs.qza \
   --o-tree phylogeny/ITS_unrooted-tree.qza \
