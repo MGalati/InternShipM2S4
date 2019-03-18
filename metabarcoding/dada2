@@ -24,6 +24,15 @@ conda activate qiime2-2018.11
 
 Récupération d'un fichier contenant une liste des échantilons :
 ls *.gz | cut -d "_" -f 1,2 > samples_names.txt
+____________________________________________________________________________
+
+fastqc /homedir/galati/data/16S/*.fastq.gz -t 15 -o /homedir/galati/data/16S_qc
+cd /homedir/galati/subsample/raw/qc/
+multiqc .
+
+scp galati@cc2-login.cirad.fr:/homedir/galati/data/ITS_qc/multiqc_report.html /home/galati/
+
+scp galati@cc2-login.cirad.fr:/homedir/galati/data/16S_qc/multiqc_report.html /home/galati/
 _____________________________________________________________________________
 
 Suppression des adapters:
@@ -151,6 +160,12 @@ qiime phylogeny align-to-tree-mafft-fasttree \
   --o-tree phylogeny/unrooted-tree.qza \
   --o-rooted-tree phylogeny/rooted-tree.qza \
   --verbose
+__________________________________________________________________________
 
-
+Clasiffier 16S
 wget -c -O "silva-132-99-nb-classifier.qza" "https://data.qiime2.org/2018.11/common/silva-132-99-nb-classifier.qza"
+
+Classifier ITS
+https://forum.qiime2.org/t/unite-ver-7-2-2017-12-01-classifiers-for-qiime2-ver-2017-12-available-here/3020
+scp /home/galati/Documents/unite-ver7-dynamic-classifier-01.12.2017.qza galati@cc2-login.cirad.fr:/homedir/galati/data/classifier
+___________________________________________________________________________
