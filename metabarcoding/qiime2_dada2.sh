@@ -82,11 +82,11 @@ qiime cutadapt trim-paired \
         --p-error-rate 0.1 \
         --o-trimmed-sequences ITS_demux-paired-end-trimmed.qza \
 
-echo "Fichiers de visualisation des données"
-qiime demux summarize --i-data ITS_demux-paired-end.qza --o-visualization ITS_demux.qzv
-qiime demux summarize --i-data 16S_demux-paired-end.qza --o-visualization 16S_demux.qzv
-scp galati@cc2-login.cirad.fr:/homedir/galati/data/ITS_demux.qzv /home/galati/Téléchargements/
-scp galati@cc2-login.cirad.fr:/homedir/galati/data/16S_demux.qzv /home/galati/Téléchargements/
+#echo "Fichiers de visualisation des données"
+#qiime demux summarize --i-data ITS_demux-paired-end.qza --o-visualization ITS_demux.qzv
+#qiime demux summarize --i-data 16S_demux-paired-end.qza --o-visualization 16S_demux.qzv
+#scp galati@cc2-login.cirad.fr:/homedir/galati/data/ITS_demux.qzv /home/galati/Téléchargements/
+#scp galati@cc2-login.cirad.fr:/homedir/galati/data/16S_demux.qzv /home/galati/Téléchargements/
 
 echo "Denoising 16S"
 qiime dada2 denoise-paired --i-demultiplexed-seqs 16S_demux-paired-end.qza \
@@ -115,7 +115,8 @@ qiime dada2 denoise-paired --i-demultiplexed-seqs ITS_demux-paired-end.qza \
                            --o-table ITS_table-dada2.qza \
                            --o-denoising-stats ITS_stats-dada2.qza \
                            --verbose \
-        
+                           
+mkdir /homedir/galati/data/phylo         
 DATA=/homedir/galati/data
 PHYLO=/homedir/galati/data/phylo
 
@@ -128,7 +129,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
   --o-tree ${PHYLO}/16S_unrooted-tree.qza \
   --o-rooted-tree ${PHYLO}/16S_rooted-tree.qza \
   --verbose \
-  
+
 echo "Phylogénie ITS"  
 qiime phylogeny align-to-tree-mafft-fasttree \
   --p-n-threads 0 \
@@ -138,3 +139,35 @@ qiime phylogeny align-to-tree-mafft-fasttree \
   --o-tree ${PHYLO}/ITS_unrooted-tree.qza \
   --o-rooted-tree ${PHYLO}/ITS_rooted-tree.qza \
   --verbose \
+
+mkdir /homedir/galati/data/taxonomy/
+
+echo "Taxonomie des séquences 16S"
+qiime feature-classifier classify-sklearn \
+  --i-classifier /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza \
+  --i-reads /homedir/galati/data/16S_rep-seq-dada2.qza  \
+  --o-classification /homedir/galati/data/taxonomy/16S_taxonomy.qza \
+  --p-n-jobs 15 \
+  --verbose
+
+echo "Taxonomie des séquences ITS"
+qiime feature-classifier classify-sklearn \
+  --i-classifier /homedir/galati/data/classifier/unite-ver7-dynamic-classifier-01.12.2017.qza \
+  --i-reads /homedir/galati/data/ITS_rep-seq-dada2.qza  \
+  --o-classification /homedir/galati/data/taxonomy/ITS_taxonomy.qza \
+  --p-n-jobs 15 \
+  --verbose
+
+echo "Tabulate 16S"
+qiime metadata tabulate \
+  --m-input-file /homedir/galati/data/taxonomy/16S_taxonomy.qza  \
+  --o-visualization /homedir/galati/data/taxonomy/16S_taxonomy.qzv
+
+echo "Tabulate ITS"
+qiime metadata tabulate \
+  --m-input-file /homedir/galati/data/taxonomy/ITS_taxonomy.qza  \
+  --o-visualization /homedir/galati/data/taxonomy/ITS_taxonomy.qzv
+  
+#Téléchargement sur la machine locale
+#scp galati@cc2-login.cirad.fr:/homedir/galati/data/taxonomy/16S_taxonomy.qzv /home/galati/
+#scp galati@cc2-login.cirad.fr:/homedir/galati/data/taxonomy/ITS_taxonomy.qzv /home/galati/
