@@ -116,22 +116,25 @@ qiime dada2 denoise-paired --i-demultiplexed-seqs ITS_demux-paired-end.qza \
                            --o-denoising-stats ITS_stats-dada2.qza \
                            --verbose \
         
+DATA=/homedir/galati/data
+PHYLO=/homedir/galati/data/phylo
+
 echo "Phylogénie 16S"
 qiime phylogeny align-to-tree-mafft-fasttree \
   --p-n-threads 0 \
-  --i-sequences 16S_rep-seq-dada2.qza \
-  --o-alignment phylogeny/16S_aligned-rep-seqs.qza \
-  --o-masked-alignment phylogeny/16S_masked-aligned-rep-seqs.qza \
-  --o-tree phylogeny/16S_unrooted-tree.qza \
-  --o-rooted-tree phylogeny/16S_rooted-tree.qza \
+  --i-sequences ${DATA}/16S_rep-seq-dada2.qza \
+  --o-alignment ${PHYLO}/16S_aligned-rep-seqs.qza \
+  --o-masked-alignment ${PHYLO}/16S_masked-aligned-rep-seqs.qza \
+  --o-tree ${PHYLO}/16S_unrooted-tree.qza \
+  --o-rooted-tree ${PHYLO}/16S_rooted-tree.qza \
   --verbose \
   
 echo "Phylogénie ITS"  
 qiime phylogeny align-to-tree-mafft-fasttree \
   --p-n-threads 0 \
-  --i-sequences ITS_rep-seq-dada2.qza \
-  --o-alignment phylogeny/ITS_aligned-rep-seqs.qza \
-  --o-masked-alignment phylogeny/ITS_masked-aligned-rep-seqs.qza \
-  --o-tree phylogeny/ITS_unrooted-tree.qza \
-  --o-rooted-tree phylogeny/ITS_rooted-tree.qza \
+  --i-sequences ${DATA}/ITS_rep-seq-dada2.qza \
+  --o-alignment ${PHYLO}/ITS_aligned-rep-seqs.qza \
+  --o-masked-alignment ${PHYLO}/ITS_masked-aligned-rep-seqs.qza \
+  --o-tree ${PHYLO}/ITS_unrooted-tree.qza \
+  --o-rooted-tree ${PHYLO}/ITS_rooted-tree.qza \
   --verbose \
