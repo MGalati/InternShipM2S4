@@ -91,7 +91,7 @@ qiime cutadapt trim-paired \
 echo "Denoising 16S"
 qiime dada2 denoise-paired --i-demultiplexed-seqs 16S_demux-paired-end.qza \
                            --p-trunc-len-f 0 \
-                           --p-trunc-len-r 207 \ #Quality Score decreases from 240pb for the reverse reads
+                           --p-trunc-len-r 207 \ #Quality Score decreases from 207pb for the reverse reads
                            --p-max-ee 2.0 \ #default value : all the reads with number of exepcted errors higher than 2.0 will be discarded
                            --p-trunc-q 10 \ #reads are truncated at the first instance of a quality score less than or equal to 10
                            --p-n-reads-learn 1000000 \ #default value : it's the number of read to use during the training of error model 
@@ -105,7 +105,7 @@ qiime dada2 denoise-paired --i-demultiplexed-seqs 16S_demux-paired-end.qza \
 echo "Denoising ITS"
 qiime dada2 denoise-paired --i-demultiplexed-seqs ITS_demux-paired-end.qza \
                            --p-trunc-len-f 0 \
-                           --p-trunc-len-r 220 \ #Quality Score decreases from 240pb for the reverse reads
+                           --p-trunc-len-r 220 \ #Quality Score decreases from 220pb for the reverse reads
                            --p-max-ee 2.0 \ #default value : all the reads with number of exepcted errors higher than 2.0 will be discarded
                            --p-trunc-q 10 \ #reads are truncated at the first instance of a quality score less than or equal to 10
                            --p-n-reads-learn 1000000 \ #default value : it's the number of read to use during the training of error model 
