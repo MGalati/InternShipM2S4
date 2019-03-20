@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -q normal.q
-#$ -N trimgalore
+#$ -N dada2
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 15
 #$ -l mem_free=6G
@@ -49,7 +49,7 @@ for f in ${TRIM_16S}*.fq.gz ; do mv $f $(echo $f | cut -d "_" -f 1,2,3,4,5).fast
 
 echo "Suppresison des fichiers de rapport"
 rm ${TRIM_ITS}*.txt
-rm ${TRIM_ITS}*.txt
+rm ${TRIM_16S}*.txt
 
 echo "Import des fichiers fastq.gz"
 qiime tools import \
@@ -62,7 +62,7 @@ qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
   --input-path /homedir/galati/data/ITS_adapter \
   --input-format CasavaOneEightSingleLanePerSampleDirFmt \
---output-path /homedir/galati/data/ITS_demux-paired-end.qza
+  --output-path /homedir/galati/data/ITS_demux-paired-end.qza
 
 echo "Suppression des primers 16S"
 qiime cutadapt trim-paired \
