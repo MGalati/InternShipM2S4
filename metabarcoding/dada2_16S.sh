@@ -8,6 +8,7 @@
 #$ -cwd
 
 echo "Activation du module conda"
+module purge
 module load system/conda/5.1.0
 
 echo "Activation de l'environnement conda"
