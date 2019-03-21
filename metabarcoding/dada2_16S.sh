@@ -45,7 +45,7 @@ qiime tools import \
   echo "Suppression des primers 16S"
 qiime cutadapt trim-paired \
         --i-demultiplexed-sequences 16S_demux-paired-end.qza \
-        --p-cores 1 \
+        --p-cores 1 \#pourquoi 1 coeur alors que tu en mobilise 15?
         --p-front-f NNNNCCTACGGGNGGCWGCAG \
         --p-front-r NNNNGACTACHVGGGTATCTAATCC \
         --p-error-rate 0.1 \
@@ -86,13 +86,17 @@ qiime feature-classifier classify-sklearn \
   --i-classifier /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza \
   --i-reads /homedir/galati/data/16S_rep-seq-dada2.qza  \
   --o-classification /homedir/galati/data/taxonomy/16S_taxonomy.qza \
-  --p-n-jobs 15 \
+  --p-n-jobs 15 \ # laisse ${NSLOTS} pour que ça match directement les parametres du script
   --verbose
   
 echo "Tabulate 16S"
 qiime metadata tabulate \
   --m-input-file /homedir/galati/data/taxonomy/16S_taxonomy.qza  \
   --o-visualization /homedir/galati/data/taxonomy/16S_taxonomy.qzv  
+  
+# il faut ensuite exporter l'arbre, la taxonomie pour pouvoir la rentrer dans R
+# cf https://github.com/fconstancias/dada2_qiime2_multiple_runs/blob/master/script.sh a partir de l 222
+# 
 
 # JOB END
 date
