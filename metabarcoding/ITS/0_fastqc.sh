@@ -13,7 +13,7 @@
 module purge
 module load system/conda/5.1.0
 # conda create --name fastqc_multiqc
-source activate fastqc_multiqc
+conda activate fastqc_multiqc
 
 echo "Début des analyses FastQC/MultiQC"
 
