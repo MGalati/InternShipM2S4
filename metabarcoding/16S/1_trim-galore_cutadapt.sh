@@ -14,16 +14,23 @@ module load system/conda/5.1.0
 
 # conda create --name trimgalore
 # conda install -c bioconda trim-galore 
-conda activate trimgalore
+source activate trimgalore
 
 echo "Récupération des noms d'échantillons"
+
+rm sample_names.tsv
 
 MOCK=/homedir/galati/mock/analysis/16S/pair/Mock_S280
 RAW_16S=/homedir/galati/data/16S
 
-for f in ${MOCK} ${RAW_16S}
+for f in ${MOCK}
 do
-ls ${f}/*R1*gz | cut -d/ -f2 |cut -d_ -f1,2 >> sample_names.tsv
+ls ${f}/*R1*gz | cut -d/ -f8 |cut -d_ -f1,2 >> sample_names.tsv
+done
+
+for f in ${RAW_16S}
+do
+ls ${f}/*R1*gz | cut -d/ -f6 |cut -d_ -f1,2 >> sample_names.tsv
 done
 
 echo "Suppression des adapters 16S"
@@ -42,9 +49,9 @@ trim_galore --paired -q 0 --nextera --length 0 ${RAW_16S}/${prefix_16S}*_R1*.fas
 done
 
 echo "Renommage des fichiers au format Casava et à l'extension .fastq.gz"
-for f in ${TRIM_16S}*.fq.gz ; do mv $f $(echo $f | cut -d "_" -f 1,2,3,4,5).fastq.gz ; done ;
+for f in ${TRIM_16S}/*.fq.gz ; do mv $f $(echo $f | cut -d "_" -f 1,2,3,4,5).fastq.gz ; done ;
 echo "Suppresison des fichiers de rapport"
-rm ${TRIM_16S}*.txt
+# rm ${TRIM_16S}/*.txt
 
 IN=/homedir/galati/data/16S_adapter_test
 OUT=/homedir/galati/data/16S_primer_trimmed
@@ -54,7 +61,7 @@ mkdir ${OUT}
 for NAME in `awk '{print $1}' sample_names.tsv`
 do
     echo "Suppression de primers"
-    ls ${IN}/${NAME}*R1*gz ${IN}/${NAME}*R2*gz
+    ls ${IN}/${NAME}/*R1*gz ${IN}/${NAME}/*R2*gz
 cutadapt \
     --pair-filter any \
     --no-indels \
@@ -76,12 +83,12 @@ cutadapt \
 echo "Fin de la suppression de primers"
 done
 
-conda deactivate trimgalore
-conda activate fastqc_multiqc
+source deactivate trimgalore
+source activate fastqc_multiqc
 
-mkdir ${OUT}'QC/'
-fastqc -t ${NSOLTS} ${OUT}*fastq* -o ${OUT}'QC/'
-multiqc ${OUT}'QC/' -o ${OUT}'QC/'
+mkdir ${OUT}/'QC/'
+fastqc -t ${NSOLTS} ${OUT}/*fastq* -o ${OUT}/'QC/'
+multiqc ${OUT}/'QC/' -o ${OUT}/'QC/'
 
 # JOB END
 date
