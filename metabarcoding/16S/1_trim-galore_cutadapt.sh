@@ -40,10 +40,10 @@ mkdir ${TRIM_16S}
 for i in ${RAW_16S}/*_L001_R1_001.fastq.gz
 do
     prefix_16S=$(basename $i _L001_R1_001.fastq.gz) # print which sample is being processed
-ls ${RAW_16S}/${prefix_16S}*_R1*.fastq* ${RAW_16S}/${prefix_16S}*_R2*.fastq*
+ls ${RAW_16S}/${prefix_16S_L001_R1_001.fastq.gz ${RAW_16S}/${prefix_16S}_L001_R2_001.fastq.gz
 
     echo "Trim galore Sample ${prefix_16S} Lancement !"
-trim_galore --paired -q 0 --nextera --length 0 ${RAW_16S}/${prefix_16S}*_R1*.fastq* ${RAW_16S}/${prefix_16S}*_R2*.fastq* -o ${TRIM_16S}
+trim_galore --paired -q 0 --nextera --length 0 ${RAW_16S}/${prefix_16S}_L001_R1_001.fastq.gz ${RAW_16S}/${prefix_16S}_L001_R2_001.fastq.gz -o ${TRIM_16S}
     echo "Trim galore Sample ${prefix_16S} Fin !"
     
 done
@@ -61,7 +61,7 @@ mkdir ${OUT}
 for NAME in `awk '{print $1}' sample_names.tsv`
 do
     echo "Suppression de primers"
-    ls ${IN}/${NAME}/*R1*gz ${IN}/${NAME}/*R2*gz
+    ls ${IN}/${NAME}_L001_R1_001.fastq.gz ${IN}/${NAME}_L001_R2_001.fastq.gz
 cutadapt \
     --pair-filter any \
     --no-indels \
@@ -70,7 +70,7 @@ cutadapt \
     -G NNNNGACTACNVGGGTATCTAATCC \
     -o ${OUT}/${NAME}"_L001_R1_001.fastq.gz" \
     -p ${OUT}/${NAME}"_L001_R2_001.fastq.gz" \
-    ${IN}/${NAME}*R1*.fastq.gz ${IN}/${NAME}*R2*.fastq.gz \
+    ${IN}/${NAME}_L001_R1_001.fastq.gz ${IN}/${NAME}_L001_R2_001.fastq.gz \
 	> ${OUT}/${NAME}"_cutadapt_log.txt"
 	
 #    --max-n 0 \
