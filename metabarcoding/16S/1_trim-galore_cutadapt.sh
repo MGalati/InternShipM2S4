@@ -40,7 +40,7 @@ mkdir ${TRIM_16S}
 for i in ${RAW_16S}/*_L001_R1_001.fastq.gz
 do
     prefix_16S=$(basename $i _L001_R1_001.fastq.gz) # print which sample is being processed
-ls ${RAW_16S}/${prefix_16S_L001_R1_001.fastq.gz ${RAW_16S}/${prefix_16S}_L001_R2_001.fastq.gz
+ls ${RAW_16S}/${prefix}_16S_L001_R1_001.fastq.gz ${RAW_16S}/${prefix_16S}_L001_R2_001.fastq.gz
 
     echo "Trim galore Sample ${prefix_16S} Lancement !"
 trim_galore --paired -q 0 --nextera --length 0 ${RAW_16S}/${prefix_16S}_L001_R1_001.fastq.gz ${RAW_16S}/${prefix_16S}_L001_R2_001.fastq.gz -o ${TRIM_16S}
