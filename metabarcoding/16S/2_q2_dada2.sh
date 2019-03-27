@@ -12,35 +12,19 @@ module purge
 module load system/conda/5.1.0
 source activate qiime2-2018.11
 
-# JOB BEGIN
-
-IN=primer_trimmed_fastqs
-
-# remove mv non .fastq.gz files
-# rm ${IN}/*txt # we summarized those before
-# mv ${IN}/qc ../
+echo "Début de l'analyse"
 
 
-# mv fastq.gz
-for RUN in BP CP DD IB II LU MC
-do
-mkdir -p ${IN}/${RUN}
-mv ${IN}/${RUN}*gz ${IN}/${RUN}
-done
+# Suppression des fichiers qui ne sont pas en extensio .fastq.gz
+# rm ${OUT}/*txt
+# ou bien mv ${OUT}/qc ../
 
-### Import sequences 
-# only sequences and properly formatted in the INPUT directory
-# in the following directories
+#Déplacement des séquences dans des dossiers pour séparer les différentes RUN de séquencage
 
-RUN1=BP
-RUN2=CP 
-RUN3=DD
-RUN4=IB
-RUN5=II
-RUN6=LU
-RUN7=MC
+RUN1=/homedir/galati/data/16S_primer_trimmed
+RUN2=/homedir/galati/mock/analysis/16S/pair/Mock_S280
 
-for seqs in ${RUN1} ${RUN2} ${RUN3} ${RUN4} ${RUN5} ${RUN6} ${RUN7}
+for seqs in ${RUN1} ${RUN2}
 do
 qiime tools import --type SampleData[PairedEndSequencesWithQuality] \
                    --input-path ${IN}/${seqs} \
@@ -81,7 +65,7 @@ done
 # dada(derepRs, selfConsist=TRUE, ..., MAX_CONSIST=20)
 # vim /home/florentin2/anaconda3/envs/qiime2-2018.11/bin/run_dada_paired.R to include
 
-for seqs in ${RUN1} ${RUN2} ${RUN3} ${RUN4} ${RUN5} ${RUN6} ${RUN7}
+for seqs in ${RUN1} ${RUN2}
 do
 
 truncF=0
@@ -140,30 +124,18 @@ mkdir dada2_output
 qiime feature-table merge \
   --i-tables dada2_output_${RUN1}/${RUN1}_table.qza \
   --i-tables dada2_output_${RUN2}/${RUN2}_table.qza \
-  --i-tables dada2_output_${RUN3}/${RUN3}_table.qza \
-  --i-tables dada2_output_${RUN4}/${RUN4}_table.qza \
-  --i-tables dada2_output_${RUN5}/${RUN5}_table.qza \
-  --i-tables dada2_output_${RUN6}/${RUN6}_table.qza \
-  --i-tables dada2_output_${RUN7}/${RUN7}_table.qza \
   --o-merged-table dada2_output/table.qza
 
 # Representative sequences
 qiime feature-table merge-seqs \
   --i-data dada2_output_${RUN1}/${RUN1}_representative_sequences.qza \
   --i-data dada2_output_${RUN2}/${RUN2}_representative_sequences.qza \
-  --i-data dada2_output_${RUN3}/${RUN3}_representative_sequences.qza \
-  --i-data dada2_output_${RUN4}/${RUN4}_representative_sequences.qza \
-  --i-data dada2_output_${RUN5}/${RUN5}_representative_sequences.qza \
-  --i-data dada2_output_${RUN6}/${RUN6}_representative_sequences.qza \
-  --i-data dada2_output_${RUN7}/${RUN7}_representative_sequences.qza \
   --o-merged-data dada2_output/representative_sequences.qza
 
 # Denoising Stats
 
 cat dada2_output_${RUN1}/${RUN1}/stats.tsv dada2_output_${RUN2}/${RUN2}/stats.tsv \
-    dada2_output_${RUN3}/${RUN3}/stats.tsv dada2_output_${RUN4}/${RUN4}/stats.tsv \
-    dada2_output_${RUN5}/${RUN5}/stats.tsv dada2_output_${RUN6}/${RUN6}/stats.tsv \
-    dada2_output_${RUN7}/${RUN7}/stats.tsv > dada2_output/stats.tsv
+     > dada2_output/stats.tsv
 
 #cannot
 #qiime feature-table merge \
