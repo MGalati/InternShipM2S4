@@ -14,15 +14,34 @@ source activate qiime2-2018.11
 
 echo "Début de l'analyse"
 
-
-# Suppression des fichiers qui ne sont pas en extensio .fastq.gz
+# Suppression des fichiers qui ne sont pas en extension .fastq.gz
 # rm ${OUT}/*txt
 # ou bien mv ${OUT}/qc ../
 
 #Déplacement des séquences dans des dossiers pour séparer les différentes RUN de séquencage
+IN=primer_trimmed_fastqs
+16S=/homedir/galati/data/16S_primer_trimmed
+MOCK=/homedir/galati/mock/analysis/16S/pair/Mock_S280
 
-RUN1=/homedir/galati/data/16S_primer_trimmed
-RUN2=/homedir/galati/mock/analysis/16S/pair/Mock_S280
+for RUN in 16S MOCK
+do
+mkdir -p ${IN}/${RUN}
+cp ${IN}/${RUN}*gz ${IN}/${RUN}
+done
+
+### Import sequences 
+# only sequences and properly formatted in the INPUT directory
+# in the following directories
+
+RUN1=BP
+RUN2=CP 
+RUN3=DD
+RUN4=IB
+RUN5=II
+RUN6=LU
+RUN7=MC
+
+
 
 for seqs in ${RUN1} ${RUN2}
 do
