@@ -19,6 +19,7 @@ source activate trimgalore
 echo "Récupération des noms d'échantillons"
 
 rm sample_names.tsv
+rm /homedir/galati/data/16S/Undetermined*
 
 MOCK=/homedir/galati/mock/analysis/16S/pair/Mock_S280
 RAW_16S=/homedir/galati/data/16S
@@ -37,13 +38,10 @@ echo "Suppression des adapters 16S"
 TRIM_16S=/homedir/galati/data/16S_adapter_test
 mkdir ${TRIM_16S}
 
-for i in ${RAW_16S}/*_L001_R1_001.fastq.gz
+for NAME in `awk '{print $1}' sample_names.tsv`
 do
-    prefix_16S=$(basename $i _L001_R1_001.fastq.gz) # print which sample is being processed
-ls ${RAW_16S}/${prefix}_16S_L001_R1_001.fastq.gz ${RAW_16S}/${prefix_16S}_L001_R2_001.fastq.gz
-
-    echo "Trim galore Sample ${prefix_16S} Lancement !"
-trim_galore --paired -q 0 --nextera --length 0 ${RAW_16S}/${prefix_16S}_L001_R1_001.fastq.gz ${RAW_16S}/${prefix_16S}_L001_R2_001.fastq.gz -o ${TRIM_16S}
+    echo "Trim galore Sample $NAME Lancement !"
+trim_galore --paired -q 0 --nextera --length 0 ${RAW_16S}/${NAME}_L001_R1_001.fastq.gz ${RAW_16S}/${NAME}_L001_R2_001.fastq.gz -o ${TRIM_16S}
     echo "Trim galore Sample ${prefix_16S} Fin !"
     
 done
@@ -68,10 +66,10 @@ cutadapt \
     --discard-untrimmed \
     -g NNNNCCTACGGGNBGCASCAG \
     -G NNNNGACTACNVGGGTATCTAATCC \
-    -o ${OUT}/${NAME}"_L001_R1_001.fastq.gz" \
-    -p ${OUT}/${NAME}"_L001_R2_001.fastq.gz" \
-    ${IN}/${NAME}_L001_R1_001.fastq.gz ${IN}/${NAME}_L001_R2_001.fastq.gz \
-	> ${OUT}/${NAME}"_cutadapt_log.txt"
+    -o ${OUT}${NAME}"_L001_R1_001.fastq.gz" \
+    -p ${OUT}${NAME}"_L001_R2_001.fastq.gz" \
+    ${IN}${NAME}*R1*.fastq.gz ${IN}${NAME}*R2*.fastq.gz \
+	> ${OUT}${NAME}"_cutadapt_log.txt"
 	
 #    --max-n 0 \
 #    --minimum-length 175 \ 
@@ -89,6 +87,7 @@ source activate fastqc_multiqc
 mkdir ${OUT}/'QC/'
 fastqc -t ${NSOLTS} ${OUT}/*fastq* -o ${OUT}/'QC/'
 multiqc ${OUT}/'QC/' -o ${OUT}/'QC/'
+
 
 # JOB END
 date
