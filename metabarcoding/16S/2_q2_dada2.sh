@@ -12,35 +12,14 @@ module purge
 module load system/conda/5.1.0
 source activate qiime2-2018.11
 
-echo "Début de l'analyse"
-
-# Suppression des fichiers qui ne sont pas en extension .fastq.gz
-# rm ${OUT}/*txt
-# ou bien mv ${OUT}/qc ../
-
-#Déplacement des séquences dans des dossiers pour séparer les différentes RUN de séquencage
-IN=primer_trimmed_fastqs
-16S=/homedir/galati/data/16S_primer_trimmed
-MOCK=/homedir/galati/mock/analysis/16S/pair/Mock_S280
-
-for RUN in 16S MOCK
-do
-mkdir -p ${IN}/${RUN}
-cp ${IN}/${RUN}*gz ${IN}/${RUN}
-done
+# JOB BEGIN
 
 ### Import sequences 
 # only sequences and properly formatted in the INPUT directory
 # in the following directories
 
-RUN1=BP
-RUN2=CP 
-RUN3=DD
-RUN4=IB
-RUN5=II
-RUN6=LU
-RUN7=MC
-
+RUN1=/homedir/galati/data/16S_primer_trimmed
+RUN2=/homedir/galati/mock/analysis/16S/pair/Mock_S280
 
 
 for seqs in ${RUN1} ${RUN2}
@@ -154,7 +133,7 @@ qiime feature-table merge-seqs \
 # Denoising Stats
 
 cat dada2_output_${RUN1}/${RUN1}/stats.tsv dada2_output_${RUN2}/${RUN2}/stats.tsv \
-     > dada2_output/stats.tsv
+    > dada2_output/stats.tsv
 
 #cannot
 #qiime feature-table merge \
@@ -324,5 +303,3 @@ zip export/export.zip export/* dada2_outpu*/*qzv taxonomy/*.qzv
 date
 
 exit 0
-
-
