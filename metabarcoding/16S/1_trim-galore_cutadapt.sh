@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#$ -q normal.q
+#$ -q short.q
 #$ -N trim-galore_cutadapt
 #$ -M mathias.galati@cirad.fr
-#$ -pe parallel_smp 6
-#$ -l mem_free=6G
+#$ -pe parallel_smp 12
+#$ -l mem_free=12G
 #$ -V
 #$ -cwd
 #$ -V
