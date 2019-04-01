@@ -47,19 +47,22 @@ trim_galore --paired -q 0 --nextera --length 0 ${RAW_16S}/${NAME}_L001_R1_001.fa
 done
 
 echo "Renommage des fichiers au format Casava et à l'extension .fastq.gz"
-for f in ${TRIM_16S}/*.fq.gz ; do mv $f $(echo $f | cut -d "_" -f 1,2,3,4,5).fastq.gz ; done ;
+#for f in ${TRIM_16S}/*.fq.gz ; do mv $f $(echo $f | cut -d "_" -f1-5).fastq.gz ; done ;
+rename _val_1.fq.gz .fastq.gz ${TRIM_16S}/*gz
+rename _val_2.fq.gz .fastq.gz ${TRIM_16S}/*gz
+
 echo "Suppresison des fichiers de rapport"
 # rm ${TRIM_16S}/*.txt
 
-IN=/homedir/galati/data/16S_adapter_test
-OUT=/homedir/galati/data/16S_primer_trimmed
+IN=/homedir/galati/data/16S_adapter_test/
+OUT=/homedir/galati/data/16S_primer_trimmed/
 
 mkdir ${OUT}
 
 for NAME in `awk '{print $1}' sample_names.tsv`
 do
     echo "Suppression de primers"
-    ls ${IN}/${NAME}_L001_R1_001.fastq.gz ${IN}/${NAME}_L001_R2_001.fastq.gz
+    ls ${IN}${NAME}_L001_R1_001.fastq.gz ${IN}${NAME}_L001_R2_001.fastq.gz
 cutadapt \
     --pair-filter any \
     --no-indels \
@@ -84,9 +87,9 @@ done
 source deactivate trimgalore
 source activate fastqc_multiqc
 
-mkdir ${OUT}/'QC/'
-fastqc -t ${NSOLTS} ${OUT}/*fastq* -o ${OUT}/'QC/'
-multiqc ${OUT}/'QC/' -o ${OUT}/'QC/'
+mkdir ${OUT}'QC/'
+fastqc -t ${NSOLTS} ${OUT}*fastq* -o ${OUT}'QC/'
+multiqc ${OUT}'QC/' -o ${OUT}'QC/'
 
 
 # JOB END
