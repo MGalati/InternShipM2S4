@@ -24,10 +24,10 @@ rm /homedir/galati/data/16S/Undetermined*
 MOCK=/homedir/galati/mock/analysis/16S/pair/Mock_S280
 RAW_16S=/homedir/galati/data/16S
 
-for f in ${MOCK}
-do
-ls ${f}/*R1*gz | cut -d/ -f8 |cut -d_ -f1,2 >> sample_names.tsv
-done
+#for f in ${MOCK}
+#do
+#ls ${f}/*R1*gz | cut -d/ -f8 |cut -d_ -f1,2 >> sample_names.tsv
+#done
 
 for f in ${RAW_16S}
 do
@@ -35,8 +35,10 @@ ls ${f}/*R1*gz | cut -d/ -f6 |cut -d_ -f1,2 >> sample_names.tsv
 done
 
 echo "Suppression des adapters 16S"
-TRIM_16S=/homedir/galati/data/16S_adapter_test
+TRIM_16S=/homedir/galati/data/16S_adapter_test2
 mkdir ${TRIM_16S}
+
+trim_galore --paired -q 0 --nextera --length 0 ${MOCK}/Mock_S280_L001_R1_001.fastq.gz ${MOCK}/Mock_S280_L001_R2_001.fastq.gz -o ${TRIM_16S}
 
 for NAME in `awk '{print $1}' sample_names.tsv`
 do
@@ -56,8 +58,8 @@ ls ${TRIM_16S}
 echo "Suppresison des fichiers de rapport"
 # rm ${TRIM_16S}/*.txt
 
-IN=/homedir/galati/data/16S_adapter_test/
-OUT=/homedir/galati/data/16S_primer_trimmed/
+IN=/homedir/galati/data/16S_adapter_test2/
+OUT=/homedir/galati/data/16S_primer_trimmed2/
 
 mkdir ${OUT}
 
