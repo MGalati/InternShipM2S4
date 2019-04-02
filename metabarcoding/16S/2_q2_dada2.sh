@@ -175,7 +175,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 mkdir taxonomy
 
 qiime feature-classifier classify-sklearn \
-  --i-classifier /homedir/constancias/db/qiime2/silva-132-99-nb-classifier.qza \
+  --i-classifier /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza \
   --i-reads dada2_output/representative_sequences.qza \
   --o-classification taxonomy/16S_taxonomy.qza \
   --p-n-jobs ${NSLOTS} \
