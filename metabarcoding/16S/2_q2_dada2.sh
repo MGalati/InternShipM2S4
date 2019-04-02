@@ -14,13 +14,20 @@ source activate qiime2-2018.11
 
 # JOB BEGIN
 
-### Import sequences 
-# only sequences and properly formatted in the INPUT directory
-# in the following directories
+mkdir /homedir/galati/data/16S_primer_trimmed2_analysis/
+mv /homedir/galati/data/16S_primer_trimmed2/*.txt /homedir/galati/data/16S_primer_trimmed2_analysis/
+mv /homedir/galati/data/16S_primer_trimmed2/QC/ /homedir/galati/data/16S_primer_trimmed2_analysis/
+mv /homedir/galati/mock/analysis/16S/pair/Mock_S280/qc/ /homedir/galati/mock/analysis/16S/pair/Mock_S280_qc/
+mv /homedir/galati/mock/analysis/16S/pair/Mock_S280 /homedir/galati/data/
 
-RUN1=/homedir/galati/data/16S_primer_trimmed
-RUN2=/homedir/galati/mock/analysis/16S/pair/Mock_S280
+rm -r dada2_output
+rm -r phylogeny
+rm -r taxonomy
 
+IN=/homedir/galati/data
+
+RUN1=16S_primer_trimmed2
+RUN2=Mock_S280
 
 for seqs in ${RUN1} ${RUN2}
 do
@@ -38,30 +45,6 @@ qiime demux summarize \
   --o-visualization ${IN}/${seqs}_reads.qzv  \
   --verbose
 done
-
-#qiime tools view ${seqs}_reads.qzv
-
-### Adapter removal
-#https://docs.qiime2.org/2018.11/plugins/available/cutadapt/trim-paired/
-#https://forum.qiime2.org/t/qiime-cutadapt-trim-paired-failing-silently-in-qiime-2018-6/7468
-
-##qiime cutadapt trim-paired \
-##        --i-demultiplexed-sequences ${OUT}/${IN}.qza \
-##        --p-cores ${NSLOTS} \
-##        --p-front-f "${fwdcut[$i]}" \
-##        --p-front-r "${revcut[$i]}" \
-##        --p-error-rate 0.1 \
-##        --o-trimmed-sequences "$trpth"/"${otpth[$i]}" \
-##        --verbose | tee "$trpth"/"${log[$i]}"
-
-### DADA2 workflow
-#https://github.com/LangilleLab/microbiome_helper/wiki/Amplicon-SOP-v2-(qiime2-2018.8)
-#For multiple run https://docs.qiime2.org/2018.11/tutorials/fmt/
-
-# script run_dada_paired.R, modified to include
-# minLen = 175, maxN = 0, 
-# dada(derepRs, selfConsist=TRUE, ..., MAX_CONSIST=20)
-# vim /home/florentin2/anaconda3/envs/qiime2-2018.11/bin/run_dada_paired.R to include
 
 for seqs in ${RUN1} ${RUN2}
 do
@@ -188,26 +171,19 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 # loop to test various taxonomic database - pour toi laisser juste silva123 - 
 # https://www.dropbox.com/s/5tckx2vhrmf3flp/silva-132-99-nb-classifier.qza?dl=0
 
+
 mkdir taxonomy
 
-for DB in silva_132_99_16S_majority_taxonomy_CCTACGGGNBGCASCAG_GACTACNVGGGTATCTAATCC_id0.85_ml350_Ml500 gg-13-8-99-nb-classifier
-#silva_132_99_16S_consensus_taxonomy_GTGCCAGCMGCCGCGGTAA_GGACTACHVGGGTWTCTAAT_id0.85_ml248_Ml257 silva_132_99_16S_consensus_taxonomy_GTGCCAGCMGCCGCGGTAA_GGACTACHVGGGTWTCTAAT_id0.8_ml210_Ml310 \
-#gg-13-8-99-515-806-nb-classifier gg-13-8-99-nb-classifier \
-#silva-132-99-515-806-nb-classifier silva-132-99-nb-classifier \
-#silva_132_99_16S_majority_taxonomy_GTGCCAGCMGCCGCGGTAA_GGACTACHVGGGTWTCTAAT_id0.85_ml248_Ml257
-
-do
-
 qiime feature-classifier classify-sklearn \
-  --i-classifier /homedir/constancias/db/qiime2/${DB}.qza \
+  --i-classifier /homedir/constancias/db/qiime2/silva-132-99-nb-classifier.qza \
   --i-reads dada2_output/representative_sequences.qza \
-  --o-classification taxonomy/${DB}_taxonomy.qza \
+  --o-classification taxonomy/16S_taxonomy.qza \
   --p-n-jobs ${NSLOTS} \
   --verbose
 
 qiime metadata tabulate \
-  --m-input-file taxonomy/${DB}_taxonomy.qza \
-  --o-visualization taxonomy/${DB}_taxonomy.qzv
+  --m-input-file taxonomy/16S_taxonomy.qza \
+  --o-visualization taxonomy/16S_taxonomy.qzv
 
 # necessite metadata
 # qiime taxa barplot \
@@ -216,11 +192,11 @@ qiime metadata tabulate \
 #  --o-visualization taxonomy/${DB}_taxa-bar-plots.qzv \
 #  --m-metadata-file metadata.tsv 
 
-qiime tools export --input-path taxonomy/${DB}_taxonomy.qza --output-path taxonomy
-mv taxonomy/taxonomy.tsv taxonomy/${DB}_taxonomy.tsv
+qiime tools export --input-path taxonomy/16S_taxonomy.qza --output-path taxonomy
+mv taxonomy/taxonomy.tsv taxonomy/16S_taxonomy.tsv
 
-done
 
+'''
 ### Exporting and modifying BIOM tables
 
 #Creating a TSV BIOM table
@@ -232,10 +208,10 @@ cp export/ASV-table.biom.tsv export/feature-table.biom.tsv
 #https://askubuntu.com/questions/20414/find-and-replace-text-within-a-file-using-commands
 # ASV table for phyloseq
 
-sed -i 's/#OTU ID/OTUID/g' export/ASV-table.biom.tsv
-sed -i '1d' export/ASV-table.biom.tsv
+sed -i "s/#OTU ID/OTUID/g" export/ASV-table.biom.tsv
+sed -i "1d" export/ASV-table.biom.tsv
 
-sed -i 's/#OTU ID/#OTUID/g' export/feature-table.biom.tsv
+sed -i "s/#OTU ID/#OTUID/g" export/feature-table.biom.tsv
 
 #Export Taxonomy
 # idem taxonomy
@@ -251,8 +227,8 @@ do
 
 qiime tools export --input-path taxonomy/${DB}_taxonomy.qza --output-path export
 mv export/taxonomy.tsv export/${DB}_taxonomy.tsv
-#sed -i 's/Feature ID/OTUID/g' export/${DB}_taxonomy.tsv
-sed -i '1s/.*/#OTUID\ttaxonomy\tconfidence/' export/${DB}_taxonomy.tsv
+#sed -i "s/Feature ID/OTUID/g" export/${DB}_taxonomy.tsv
+sed -i "1s/.*/#OTUID\ttaxonomy\tconfidence/" export/${DB}_taxonomy.tsv
 
 ##Add taxonomy to biom table
 ##https://forum.qiime2.org/t/exporting-and-modifying-biom-tables-e-g-adding-taxonomy-annotations/3630
@@ -260,7 +236,7 @@ sed -i '1s/.*/#OTUID\ttaxonomy\tconfidence/' export/${DB}_taxonomy.tsv
 #cp export/taxonomy.tsv export/biom-taxonomy.tsv
 ##Change the first line of biom-taxonomy.tsv (i.e. the header) to this:
 ##OTUID  taxonomy  confidence
-#sed -i '1s/.*/#OTUID\ttaxonomy\tconfidence/' export/biom-taxonomy.tsv
+#sed -i "1s/.*/#OTUID\ttaxonomy\tconfidence/" export/biom-taxonomy.tsv
 
 biom add-metadata -i export/ASV-table.biom.tsv  -o export/ASV-table-${DB}-taxonomy.biom \
   --observation-metadata-fp export/${DB}_taxonomy.tsv \
@@ -297,7 +273,7 @@ zip export/export.zip export/* dada2_outpu*/*qzv taxonomy/*.qzv
 #https://github.com/joey711/phyloseq/issues/235
 
 #physeq = phyloseq(OTU, TAX, META, TREE)
-
+'''
 
 # JOB END
 date
