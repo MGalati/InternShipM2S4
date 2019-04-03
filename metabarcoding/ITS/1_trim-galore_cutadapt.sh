@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #$ -q short.q
-#$ -N trim-galore_cutadapt
+#$ -N trim-galore_cutadapt_ITS
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 12
 #$ -l mem_free=12G
