@@ -82,9 +82,6 @@ cutadapt \
 #    --minimum-length 175 \ 
 # Dada2 peut le faire plus tard mais pas sous Qiime2 ...
 
-# Il faut que les noms de fichiers respectent le format Casava
-# par exemple L2S357_15_L001_R1_001.fastq.gz
-
 echo "Fin de la suppression de primers"
 done
 
