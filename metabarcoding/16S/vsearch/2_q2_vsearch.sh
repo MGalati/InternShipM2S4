@@ -22,6 +22,7 @@ mv /homedir/galati/data/16S_primer_trimmed2/QC/ /homedir/galati/data/16S_primer_
 mv /homedir/galati/mock/analysis/16S/pair/Mock_S280/qc/ /homedir/galati/mock/analysis/16S/pair/Mock_S280_qc/
 mv /homedir/galati/mock/analysis/16S/pair/Mock_S280 /homedir/galati/data/
 
+rm -r vsearch_output
 rm -r dada2_output
 rm -r phylogeny
 rm -r taxonomy
@@ -48,6 +49,8 @@ qiime demux summarize \
   --verbose
 done
 
+mkdir vsearch_output
+
 for seqs in ${RUN1} ${RUN2}
 do
 
@@ -64,8 +67,8 @@ qiime demux summarize \
 ### Quality filter
 qiime quality-filter q-score \
  --i-demux ${IN}/${seqs}_demux.qza \
- --o-filtered-sequences dada2_output_${seqs}/${seqs}_demux-filtered.qza \
- --o-filter-stats dada2_output_${seqs}/${seqs}_demux-filter-stats.qza
+ --o-filtered-sequences vsearch_output_${seqs}/${seqs}_demux-filtered.qza \
+ --o-filter-stats vsearch_output_${seqs}/${seqs}_demux-filter-stats.qza
 
 ### Dereplicate sequences
 qiime vsearch dereplicate-sequences \
@@ -77,30 +80,29 @@ qiime vsearch dereplicate-sequences \
 qiime vsearch cluster-features-de-novo \
   --i-table ${IN}/${seqs}_table.qza \
   --i-sequences ${IN}/${seqs}_rep-seqs.qza \
-  --o-clustered-table dada2_output_${seqs}/${seqs}_table-dn-99.qza \
-  --o-clustered-sequences dada2_output_${seqs}/${seqs}_rep-seqs-dn-99.qza \
+  --o-clustered-table vsearch_output_${seqs}/${seqs}_table-dn-99.qza \
+  --o-clustered-sequences vsearch_output_${seqs}/${seqs}_rep-seqs-dn-99.qza \
   --p-perc-identity 0.99
 
 #summarize your filtered/ASV table data
-qiime tools export --input-path dada2_output_${seqs}/${seqs}_demux-filter-stats.qza --output-path dada2_output_${seqs}/${seqs}
+qiime tools export --input-path vsearch_output_${seqs}/${seqs}_demux-filter-stats.qza --output-path vsearch_output_${seqs}/${seqs}
 
-qiime feature-table summarize --i-table dada2_output_${seqs}/${seqs}_table.qza --o-visualization dada2_output_${seqs}/${seqs}_table_summary.qzv --verbose
+qiime feature-table summarize --i-table vsearch_output_${seqs}/${seqs}_table.qza --o-visualization vsearch_output_${seqs}/${seqs}_table_summary.qzv --verbose
 
 done
 
 ### Merging denoised data
 
-mkdir dada2_output
 # ASV table
 qiime feature-table merge \
-  --i-tables dada2_output_${RUN1}/${RUN1}_table-dn-99.qza \
-  --i-tables dada2_output_${RUN2}/${RUN2}_table-dn-99.qza \
-  --o-merged-table dada2_output/table.qza
+  --i-tables vsearch_output_${RUN1}/${RUN1}_table-dn-99.qza \
+  --i-tables vsearch_output_${RUN2}/${RUN2}_table-dn-99.qza \
+  --o-merged-table vsearch_output/table.qza
 
 #summarize
 qiime feature-table summarize \
-  --i-table dada2_output/table.qza \
-  --o-visualization dada2_output/table.qzv 
+  --i-table vsearch_output/table.qza \
+  --o-visualization vsearch_output/table.qzv 
   ##--m-sample-metadata-file sample-metadata.tsv
 
 
@@ -120,15 +122,12 @@ mkdir phylogeny
 
 qiime phylogeny align-to-tree-mafft-fasttree \
   --p-n-threads ${NSLOTS} \
-  --i-sequences dada2_output/representative_sequences.qza \
+  --i-sequences vsearch_output/representative_sequences.qza \
   --o-alignment phylogeny/aligned-rep-seqs.qza \
   --o-masked-alignment phylogeny/masked-aligned-rep-seqs.qza \
   --o-tree phylogeny/unrooted-tree.qza \
   --o-rooted-tree phylogeny/rooted-tree.qza \
   --verbose
-
-#qiime tools export --input-path dada2_output/deblur_table_filt.qza --output-path dada2_output_exported
-#qiime tools export --input-path dada2_output/rep_seqs_filt.qza --output-path dada2_output_exported
 
 ### Assign Taxonomy
 # loop to test various taxonomic database - pour toi laisser juste silva123 - 
@@ -139,7 +138,7 @@ mkdir taxonomy
 
 qiime feature-classifier classify-sklearn \
   --i-classifier /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza \
-  --i-reads dada2_output/representative_sequences.qza \
+  --i-reads vsearch_output/representative_sequences.qza \
   --o-classification taxonomy/16S_taxonomy.qza \
   --p-n-jobs ${NSLOTS} \
   --verbose
@@ -150,7 +149,7 @@ qiime metadata tabulate \
 
 # necessite metadata
 # qiime taxa barplot \
-#  --i-table dada2_output/table.qza \
+#  --i-table vsearch_output/table.qza \
 #  --i-taxonomy taxonomy/${DB}_taxonomy.qza \
 #  --o-visualization taxonomy/${DB}_taxa-bar-plots.qzv \
 #  --m-metadata-file metadata.tsv 
@@ -162,7 +161,7 @@ mv taxonomy/taxonomy.tsv taxonomy/16S_taxonomy.tsv
 ### Exporting and modifying BIOM tables
 
 #Creating a TSV BIOM table
-qiime tools export --input-path dada2_output/table.qza --output-path export
+qiime tools export --input-path vsearch_output/table.qza --output-path export
 biom convert -i export/feature-table.biom -o export/ASV-table.biom.tsv --to-tsv
 
 cp export/ASV-table.biom.tsv export/feature-table.biom.tsv
@@ -184,7 +183,7 @@ biom add-metadata -i export/ASV-table.biom.tsv  -o export/ASV-table-silva-132-ta
 biom convert -i export/ASV-table-silva-132-taxonomy.biom -o export/ASV-table-silva-132-taxonomy.biom.tsv --to-tsv
 
 #Export ASV seqs
-qiime tools export --input-path dada2_output/representative_sequences.qza --output-path export
+qiime tools export --input-path vsearch_output/representative_sequences.qza --output-path export
 
 #Export Tree
 qiime tools export --input-path phylogeny/unrooted-tree.qza --output-path export
@@ -196,11 +195,10 @@ mv export/tree.nwk export/rooted-tree.nwk
 # For phyloseq you will need :
 #ls export/feature-table.biom.tsv export/taxonomy.tsv export/unrooted-tree.nwk export/rooted-tree.nwk
 
-zip export/export.zip export/* dada2_outpu*/*qzv taxonomy/*.qzv
+zip export/export.zip export/* vsearch_outpu*/*qzv taxonomy/*.qzv
 
 
 # JOB END
 date
 
 exit 0
-
