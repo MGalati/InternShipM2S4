@@ -1,12 +1,14 @@
 #!/bin/bash
 
 #$ -q normal.q
-#$ -N q2_vsearch
+#$ -N q2_vsearch_16S
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 16
 #$ -l mem_free=16G
 #$ -V
 #$ -cwd
+
+#https://forum.qiime2.org/t/analyzing-paired-end-reads-in-qiime-2/2021
 
 module purge
 module load system/conda/5.1.0
@@ -49,37 +51,40 @@ done
 for seqs in ${RUN1} ${RUN2}
 do
 
-### Quality filter
+### Joining reads
+qiime vsearch join-pairs \
+  --i-demultiplexed-seqs ${IN}/${seqs}_reads.qza \
+  --o-joined-sequences ${IN}/${seqs}_demux-joined.qza
+  
+### Summurize joined data with read quality
+qiime demux summarize \
+  --i-data ${IN}/${seqs}_demux-joined.qza \
+  --o-visualization ${IN}/${seqs}_demux-joined.qzv
 
+### Quality filter
 qiime quality-filter q-score \
  --i-demux ${IN}/${seqs}_demux.qza \
  --o-filtered-sequences dada2_output_${seqs}/${seqs}_demux-filtered.qza \
  --o-filter-stats dada2_output_${seqs}/${seqs}_demux-filter-stats.qza
 
+### Dereplicate sequences
+qiime vsearch dereplicate-sequences \
+  --i-sequences ${IN}/${seqs}_reads.qza \
+  --o-dereplicated-table ${IN}/${seqs}_table.qza \
+  --o-dereplicated-sequences ${IN}/${seqs}_rep-seqs.qza
 
-qiime deblur denoise-16S \
-  --i-demultiplexed-seqs dada2_output_${seqs}/${seqs}_demux-filtered.qza \
-  --p-trim-length 220 \
-  --o-representative-sequences dada2_output_${seqs}/${seqs}_rep-seqs-deblur.qza \
-  --o-table dada2_output_${seqs}/${seqs}_table-deblur.qza \
-  --p-sample-stats \
-  --o-stats dada2_output_${seqs}/${seqs}_deblur-stats.qza
-
-
-### Viewing denoising stats
-qiime metadata tabulate \
-  --m-input-file dada2_output_${seqs}/${seqs}_demux-filter-stats.qza \
-  --o-visualization dada2_output_${seqs}/${seqs}_demux-filter-stats.qzv
-
-
-qiime deblur visualize-stats \
-  --i-deblur-stats dada2_output_${seqs}/${seqs}_deblur-stats.qza \
-  --o-visualization dada2_output_${seqs}/${seqs}_deblur-stats.qzv
+### De novo clustering
+qiime vsearch cluster-features-de-novo \
+  --i-table ${IN}/${seqs}_table.qza \
+  --i-sequences ${IN}/${seqs}_rep-seqs.qza \
+  --o-clustered-table dada2_output_${seqs}/${seqs}_table-dn-99.qza \
+  --o-clustered-sequences dada2_output_${seqs}/${seqs}_rep-seqs-dn-99.qza \
+  --p-perc-identity 0.99
 
 #summarize your filtered/ASV table data
 qiime tools export --input-path dada2_output_${seqs}/${seqs}_demux-filter-stats.qza --output-path dada2_output_${seqs}/${seqs}
 
-qiime feature-table summarize --i-table dada2_output_${seqs}/${seqs}_table-deblur.qza --o-visualization dada2_output_${seqs}/${seqs}_table_summary.qzv --verbose
+qiime feature-table summarize --i-table dada2_output_${seqs}/${seqs}_table.qza --o-visualization dada2_output_${seqs}/${seqs}_table_summary.qzv --verbose
 
 done
 
@@ -88,26 +93,9 @@ done
 mkdir dada2_output
 # ASV table
 qiime feature-table merge \
-  --i-tables dada2_output_${RUN1}/${RUN1}_table-deblur.qza \
-  --i-tables dada2_output_${RUN2}/${RUN2}_table-deblur.qza \
+  --i-tables dada2_output_${RUN1}/${RUN1}_table-dn-99.qza \
+  --i-tables dada2_output_${RUN2}/${RUN2}_table-dn-99.qza \
   --o-merged-table dada2_output/table.qza
-
-# Representative sequences
-qiime feature-table merge-seqs \
-  --i-data dada2_output_${RUN1}/${RUN1}_representative_sequences.qza \
-  --i-data dada2_output_${RUN2}/${RUN2}_representative_sequences.qza \
-  --o-merged-data dada2_output/representative_sequences.qza
-
-# Denoising Stats
-
-cat dada2_output_${RUN1}/${RUN1}/stats.tsv dada2_output_${RUN2}/${RUN2}/stats.tsv \
-    > dada2_output/stats.tsv
-
-#cannot
-#qiime feature-table merge \
-#  --i-tables dada2_output/${RUN1}_denoising_stats.qza  \
-#  --i-tables dada2_output/${RUN2}_denoising_stats.qza  \
-#  --o-merged-table dada2_output/denoising_stats.qza
 
 #summarize
 qiime feature-table summarize \
@@ -115,16 +103,6 @@ qiime feature-table summarize \
   --o-visualization dada2_output/table.qzv 
   ##--m-sample-metadata-file sample-metadata.tsv
 
-qiime feature-table tabulate-seqs \
-  --i-data dada2_output/representative_sequences.qza\
-  --o-visualization dada2_output/representative_sequences.qzv
-
-#cannot
-#qiime feature-table summarize --i-table dada2_output/denoising_stats.qza \
-#  --o-visualization dada2_output/denoising_stats.qzv
-
-#export
-#qiime tools export dada2_output/denoising_stats.qza --output-path dada2_output
 
 #qiime feature-table summarize \
 #  --i-table table.qza \
@@ -198,31 +176,12 @@ sed -i "1d" export/ASV-table.biom.tsv
 sed -i "s/#OTU ID/#OTUID/g" export/feature-table.biom.tsv
 
 #Export Taxonomy
-# idem taxonomy
-# loop to test various taxonomic database - pour toi laisser juste silva123 - 
-# https://www.dropbox.com/s/5tckx2vhrmf3flp/silva-132-99-nb-classifier.qza?dl=0
+qiime tools export --input-path /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza --output-path export
 
-for DB in silva_123
-do
-
-qiime tools export --input-path taxonomy/${DB}_taxonomy.qza --output-path export
-mv export/taxonomy.tsv export/${DB}_taxonomy.tsv
-#sed -i "s/Feature ID/OTUID/g" export/${DB}_taxonomy.tsv
-sed -i "1s/.*/#OTUID\ttaxonomy\tconfidence/" export/${DB}_taxonomy.tsv
-
-##Add taxonomy to biom table
-##https://forum.qiime2.org/t/exporting-and-modifying-biom-tables-e-g-adding-taxonomy-annotations/3630
-
-#cp export/taxonomy.tsv export/biom-taxonomy.tsv
-##Change the first line of biom-taxonomy.tsv (i.e. the header) to this:
-##OTUID  taxonomy  confidence
-#sed -i "1s/.*/#OTUID\ttaxonomy\tconfidence/" export/biom-taxonomy.tsv
-
-biom add-metadata -i export/ASV-table.biom.tsv  -o export/ASV-table-${DB}-taxonomy.biom \
-  --observation-metadata-fp export/${DB}_taxonomy.tsv \
+biom add-metadata -i export/ASV-table.biom.tsv  -o export/ASV-table-silva-132-taxonomy.biom \
+  --observation-metadata-fp export/silva-132_taxonomy.tsv \
   --sc-separated taxonomy
-biom convert -i export/ASV-table-${DB}-taxonomy.biom -o export/ASV-table-${DB}-taxonomy.biom.tsv --to-tsv
-done
+biom convert -i export/ASV-table-silva-132-taxonomy.biom -o export/ASV-table-silva-132-taxonomy.biom.tsv --to-tsv
 
 #Export ASV seqs
 qiime tools export --input-path dada2_output/representative_sequences.qza --output-path export
@@ -239,23 +198,9 @@ mv export/tree.nwk export/rooted-tree.nwk
 
 zip export/export.zip export/* dada2_outpu*/*qzv taxonomy/*.qzv
 
-#locally
-#scp florentin2@172.28.30.116:/media/DataDrive05/Flo/ETH/export/export.zip .
-#
-#otu <- read.table(Sile = "feature-table.biom.tsv", header = TRUE)
-#tax <- read.table(Sile = "taxonomy.tsv", sep = '\t', header = TRUE)
-#merged_Sile <- merge(otu, tax, by.x = c("OTUID"), by.y=c("OTUID"))
-
-#OTU=otu_table(as.matrix(read.csv("otu_matrix.csv", sep=",", row.names=1)), taxa_are_rows = TRUE)
-#TAX=tax_table(as.matrix(read.csv("taxonomy.csv", sep=",", row.names=1)))
-#TREE = read_tree("rooted-tree.nwk")
-#Unifrac requires a rooted tree for calculation. FastUnifrac online selects an arbitrary root when an unrooted tree is uploaded.
-#https://github.com/joey711/phyloseq/issues/235
-
-#physeq = phyloseq(OTU, TAX, META, TREE)
-
 
 # JOB END
 date
 
 exit 0
+
