@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#$ -q long.q
+#$ -q bigmem.q
 #$ -N q2_dada2
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 25
-#$ -l mem_free=6G
+#$ -l mem_free=16G
 #$ -V
 #$ -cwd
 
@@ -195,8 +195,6 @@ qiime metadata tabulate \
 qiime tools export --input-path taxonomy/16S_taxonomy.qza --output-path taxonomy
 mv taxonomy/taxonomy.tsv taxonomy/16S_taxonomy.tsv
 
-
-'''
 ### Exporting and modifying BIOM tables
 
 #Creating a TSV BIOM table
@@ -214,15 +212,8 @@ sed -i "1d" export/ASV-table.biom.tsv
 sed -i "s/#OTU ID/#OTUID/g" export/feature-table.biom.tsv
 
 #Export Taxonomy
-# idem taxonomy
-# loop to test various taxonomic database - pour toi laisser juste silva123 - 
-# https://www.dropbox.com/s/5tckx2vhrmf3flp/silva-132-99-nb-classifier.qza?dl=0
 
-for DB in silva_132_99_16S_majority_taxonomy_CCTACGGGNBGCASCAG_GACTACNVGGGTATCTAATCC_id0.85_ml350_Ml500 gg-13-8-99-nb-classifier
-#silva_132_99_16S_consensus_taxonomy_GTGCCAGCMGCCGCGGTAA_GGACTACHVGGGTWTCTAAT_id0.85_ml248_Ml257 silva_132_99_16S_consensus_taxonomy_GTGCCAGCMGCCGCGGTAA_GGACTACHVGGGTWTCTAAT_id0.8_ml210_Ml310 \
-#gg-13-8-99-515-806-nb-classifier gg-13-8-99-nb-classifier \
-#silva-132-99-515-806-nb-classifier silva-132-99-nb-classifier \
-#silva_132_99_16S_majority_taxonomy_GTGCCAGCMGCCGCGGTAA_GGACTACHVGGGTWTCTAAT_id0.85_ml248_Ml257
+for DB in /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza
 do
 
 qiime tools export --input-path taxonomy/${DB}_taxonomy.qza --output-path export
@@ -273,7 +264,7 @@ zip export/export.zip export/* dada2_outpu*/*qzv taxonomy/*.qzv
 #https://github.com/joey711/phyloseq/issues/235
 
 #physeq = phyloseq(OTU, TAX, META, TREE)
-'''
+
 
 # JOB END
 date
