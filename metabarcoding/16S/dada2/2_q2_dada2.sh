@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#$ -q bigmem.q
-#$ -N q2_dada2
+#$ -q normal.q
+#$ -N q2_dada2_16S
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 25
 #$ -l mem_free=16G
@@ -195,6 +195,7 @@ qiime metadata tabulate \
 qiime tools export --input-path taxonomy/16S_taxonomy.qza --output-path taxonomy
 mv taxonomy/taxonomy.tsv taxonomy/16S_taxonomy.tsv
 
+
 ### Exporting and modifying BIOM tables
 
 #Creating a TSV BIOM table
@@ -212,28 +213,12 @@ sed -i "1d" export/ASV-table.biom.tsv
 sed -i "s/#OTU ID/#OTUID/g" export/feature-table.biom.tsv
 
 #Export Taxonomy
+qiime tools export --input-path /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza --output-path export
 
-for DB in /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza
-do
-
-qiime tools export --input-path taxonomy/${DB}_taxonomy.qza --output-path export
-mv export/taxonomy.tsv export/${DB}_taxonomy.tsv
-#sed -i "s/Feature ID/OTUID/g" export/${DB}_taxonomy.tsv
-sed -i "1s/.*/#OTUID\ttaxonomy\tconfidence/" export/${DB}_taxonomy.tsv
-
-##Add taxonomy to biom table
-##https://forum.qiime2.org/t/exporting-and-modifying-biom-tables-e-g-adding-taxonomy-annotations/3630
-
-#cp export/taxonomy.tsv export/biom-taxonomy.tsv
-##Change the first line of biom-taxonomy.tsv (i.e. the header) to this:
-##OTUID  taxonomy  confidence
-#sed -i "1s/.*/#OTUID\ttaxonomy\tconfidence/" export/biom-taxonomy.tsv
-
-biom add-metadata -i export/ASV-table.biom.tsv  -o export/ASV-table-${DB}-taxonomy.biom \
-  --observation-metadata-fp export/${DB}_taxonomy.tsv \
+biom add-metadata -i export/ASV-table.biom.tsv  -o export/ASV-table-silva-132-taxonomy.biom \
+  --observation-metadata-fp export/silva-132_taxonomy.tsv \
   --sc-separated taxonomy
-biom convert -i export/ASV-table-${DB}-taxonomy.biom -o export/ASV-table-${DB}-taxonomy.biom.tsv --to-tsv
-done
+biom convert -i export/ASV-table-silva-132-taxonomy.biom -o export/ASV-table-silva-132-taxonomy.biom.tsv --to-tsv
 
 #Export ASV seqs
 qiime tools export --input-path dada2_output/representative_sequences.qza --output-path export
@@ -249,21 +234,6 @@ mv export/tree.nwk export/rooted-tree.nwk
 #ls export/feature-table.biom.tsv export/taxonomy.tsv export/unrooted-tree.nwk export/rooted-tree.nwk
 
 zip export/export.zip export/* dada2_outpu*/*qzv taxonomy/*.qzv
-
-#locally
-#scp florentin2@172.28.30.116:/media/DataDrive05/Flo/ETH/export/export.zip .
-#
-#otu <- read.table(Sile = "feature-table.biom.tsv", header = TRUE)
-#tax <- read.table(Sile = "taxonomy.tsv", sep = '\t', header = TRUE)
-#merged_Sile <- merge(otu, tax, by.x = c("OTUID"), by.y=c("OTUID"))
-
-#OTU=otu_table(as.matrix(read.csv("otu_matrix.csv", sep=",", row.names=1)), taxa_are_rows = TRUE)
-#TAX=tax_table(as.matrix(read.csv("taxonomy.csv", sep=",", row.names=1)))
-#TREE = read_tree("rooted-tree.nwk")
-#Unifrac requires a rooted tree for calculation. FastUnifrac online selects an arbitrary root when an unrooted tree is uploaded.
-#https://github.com/joey711/phyloseq/issues/235
-
-#physeq = phyloseq(OTU, TAX, META, TREE)
 
 
 # JOB END
