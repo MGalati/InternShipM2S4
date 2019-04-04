@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #$ -q normal.q
-#$ -N q2_deblur
+#$ -N q2_vsearch
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 16
 #$ -l mem_free=16G
