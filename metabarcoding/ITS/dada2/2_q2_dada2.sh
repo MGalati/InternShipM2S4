@@ -4,7 +4,7 @@
 #$ -N q2_dada2_ITS
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 25
-#$ -l mem_free=6G
+#$ -l mem_free=20G
 #$ -V
 #$ -cwd
 
