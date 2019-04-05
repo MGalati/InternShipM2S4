@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#$ -q normal.q
+#$ -q bigmem.q
 #$ -N q2_vsearch_16S
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 16
@@ -202,3 +202,4 @@ zip export/export.zip export/* vsearch_outpu*/*qzv taxonomy/*.qzv
 date
 
 exit 0
+
