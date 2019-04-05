@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#$ -q normal.q
+#$ -q bigmem.q
 #$ -N q2_deblur_16S
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 25
@@ -55,14 +55,14 @@ do
 
 ### Quality filter
 
-qiime quality-filter q-score \
- --i-demux ${IN}/${seqs}_demux.qza \
- --o-filtered-sequences deblur_output_${seqs}/${seqs}_demux-filtered.qza \
- --o-filter-stats deblur_output_${seqs}/${seqs}_demux-filter-stats.qza
+qiime quality-filter q-score-joined \
+ --i-demux ${IN}/${seqs}_demux-joined.qza \
+ --o-filtered-sequences deblur_output_${seqs}/${seqs}_demux-joined-filtered.qza \
+ --o-filter-stats deblur_output_${seqs}/${seqs}_demux-joined-filter-stats.qza
 
 
 qiime deblur denoise-16S \
-  --i-demultiplexed-seqs deblur_output_${seqs}/${seqs}_demux-filtered.qza \
+  --i-demultiplexed-seqs deblur_output_${seqs}/${seqs}_demux-joined-filtered.qza \
   --p-trim-length 220 \
   --o-representative-sequences deblur_output_${seqs}/${seqs}_rep-seqs-deblur.qza \
   --o-table deblur_output_${seqs}/${seqs}_table-deblur.qza \
@@ -72,8 +72,8 @@ qiime deblur denoise-16S \
 
 ### Viewing denoising stats
 qiime metadata tabulate \
-  --m-input-file deblur_output_${seqs}/${seqs}_demux-filter-stats.qza \
-  --o-visualization deblur_output_${seqs}/${seqs}_demux-filter-stats.qzv
+  --m-input-file deblur_output_${seqs}/${seqs}_demux-joined-filter-stats.qza \
+  --o-visualization deblur_output_${seqs}/${seqs}_demux-joined-filter-stats.qzv
 
 
 qiime deblur visualize-stats \
@@ -228,3 +228,4 @@ zip export/export.zip export/* deblur_outpu*/*qzv taxonomy/*.qzv
 date
 
 exit 0
+
