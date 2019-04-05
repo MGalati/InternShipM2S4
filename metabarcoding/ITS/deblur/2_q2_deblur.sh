@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#$ -q normal.q
+#$ -q bigmem.q
 #$ -N q2_deblur_ITS
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 25
@@ -52,14 +52,13 @@ do
 
 ### Quality filter
 
-qiime quality-filter q-score \
- --i-demux ${IN}/${seqs}_demux.qza \
- --o-filtered-sequences deblur_output_${seqs}/${seqs}_demux-filtered.qza \
- --o-filter-stats deblur_output_${seqs}/${seqs}_demux-filter-stats.qza
-
+qiime quality-filter q-score-joined \
+ --i-demux ${IN}/${seqs}_demux-joined.qza \
+ --o-filtered-sequences deblur_output_${seqs}/${seqs}_demux-joined-filtered.qza \
+ --o-filter-stats deblur_output_${seqs}/${seqs}_demux-joined-filter-stats.qza
 
 qiime deblur denoise-other \
-  --i-demultiplexed-seqs deblur_output_${seqs}/${seqs}_demux-filtered.qza \
+  --i-demultiplexed-seqs deblur_output_${seqs}/${seqs}_demux-joined-filtered.qza \
   --p-trim-length 220 \
   --o-representative-sequences deblur_output_${seqs}/${seqs}_rep-seqs-deblur.qza \
   --o-table deblur_output_${seqs}/${seqs}_table-deblur.qza \
@@ -69,13 +68,13 @@ qiime deblur denoise-other \
 
 ### Viewing denoising stats
 qiime metadata tabulate \
-  --m-input-file deblur_output_${seqs}/${seqs}_demux-filter-stats.qza \
+  --m-input-file deblur_output_${seqs}/${seqs}_demux-joined-filter-stats.qza \
   --o-visualization deblur_output_${seqs}/${seqs}_demux-filter-stats.qzv
 
 
 qiime deblur visualize-stats \
   --i-deblur-stats deblur_output_${seqs}/${seqs}_deblur-stats.qza \
-  --o-visualization deblur_output_${seqs}/${seqs}_deblur-stats.qzv
+  --o-visualization deblur_output_${seqs}/${seqs}_deblur-joined-stats.qzv
 
 #summarize your filtered/ASV table data
 qiime tools export --input-path deblur_output_${seqs}/${seqs}_demux-filter-stats.qza --output-path deblur_output_${seqs}/${seqs}
@@ -200,7 +199,7 @@ sed -i "s/#OTU ID/#OTUID/g" export/feature-table.biom.tsv
 #Export Taxonomy
 qiime tools export --input-path /homedir/galati/data/classifier/unite-ver7-dynamic-classifier-01.12.2017.qza --output-path export
 
-biom add-metadata -i export/ASV-table.biom.tsv  -o export/ASV-table-silva-132-taxonomy.biom \
+biom add-metadata -i export/ASV-table.biom.tsv -o export/ASV-table-silva-132-taxonomy.biom \
   --observation-metadata-fp export/unite-ver7-dynamic_taxonomy.tsv \
   --sc-separated taxonomy
 biom convert -i export/ASV-table-unite-ver7-dynamic-taxonomy.biom -o export/ASV-table-unite-ver7-dynamic-taxonomy.biom.tsv --to-tsv
