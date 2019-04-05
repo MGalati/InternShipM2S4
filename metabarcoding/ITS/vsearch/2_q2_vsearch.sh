@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#$ -q normal.q
+#$ -q bigmem.q
 #$ -N q2_vsearch_ITS
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 16
@@ -19,6 +19,7 @@ source activate qiime2-2018.11
 mkdir /homedir/galati/data/ITS_primer_trimmed2_analysis/
 mv /homedir/galati/data/ITS_primer_trimmed2/*.txt /homedir/galati/data/ITS_primer_trimmed2_analysis/
 mv /homedir/galati/data/ITS_primer_trimmed2/QC/ /homedir/galati/data/ITS_primer_trimmed2_analysis/
+mv /homedir/galati/mock/analysis/ITS/pair/ITS_mock24/ /homedir/galati/data/
 
 rm -r dada2_output
 rm -r vsearch_output
