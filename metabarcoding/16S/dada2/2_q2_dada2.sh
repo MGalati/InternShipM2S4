@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#$ -q normal.q
+#$ -q bigmem.q
 #$ -N q2_dada2_16S
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 25
-#$ -l mem_free=16G
+#$ -l mem_free=20G
 #$ -V
 #$ -cwd
 
@@ -215,7 +215,7 @@ sed -i "s/#OTU ID/#OTUID/g" export/feature-table.biom.tsv
 #Export Taxonomy
 qiime tools export --input-path /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza --output-path export
 
-biom add-metadata -i export/ASV-table.biom.tsv  -o export/ASV-table-silva-132-taxonomy.biom \
+biom add-metadata -i export/ASV-table.biom.tsv -o export/ASV-table-silva-132-taxonomy.biom \
   --observation-metadata-fp export/silva-132_taxonomy.tsv \
   --sc-separated taxonomy
 biom convert -i export/ASV-table-silva-132-taxonomy.biom -o export/ASV-table-silva-132-taxonomy.biom.tsv --to-tsv
