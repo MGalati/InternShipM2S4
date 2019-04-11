@@ -7,7 +7,6 @@
 #$ -l mem_free=6G
 #$ -V
 #$ -cwd
-#$ -V
 
 module purge
 module load system/conda/5.1.0
