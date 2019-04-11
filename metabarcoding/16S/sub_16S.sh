@@ -15,7 +15,7 @@ mkdir /homedir/galati/data/16S_sub/
 SUB=/homedir/galati/data/16S_sub/
 TRIM=/homedir/galati/data/16S_primer_trimmed2/
 cd ${TRIM}
-dir ${TRIM} *.fastq.gz > filenames.txt
+dir ${TRIM} R*.fastq.gz > filenames.txt
 
 echo "Création d'un fichier avec les noms d'échantillons"
 
@@ -25,7 +25,7 @@ do
 
 echo "Sous-échantillonnage" ${NAME}
 
-vsearch --fastx_subsample ${NAME} --fastqout ${SUB}$NAME --sample_size 100 --randseed 3
+vsearch --fastx_subsample ${NAME} --fastqout ${SUB}$NAME --sample_size 1000 --randseed 3
 
 done
 
