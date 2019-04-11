@@ -1,13 +1,12 @@
 #!/bin/bash
 
-#$ -q short.q
+#$ -q bigmem.q
 #$ -N trim-galore_cutadapt_ITS
 #$ -M mathias.galati@cirad.fr
-#$ -pe parallel_smp 12
-#$ -l mem_free=12G
+#$ -pe parallel_smp 10
+#$ -l mem_free=8G
 #$ -V
 #$ -cwd
-#$ -V
 
 module purge
 module load system/conda/5.1.0
@@ -21,8 +20,8 @@ echo "Récupération des noms d'échantillons"
 rm sample_names.tsv
 rm /homedir/galati/data/ITS/Undetermined*
 
-MOCK=/homedir/galati/mock/analysis/ITS/pair/ITS_mock24
-RAW_ITS=/homedir/galati/data/ITS
+MOCK=/homedir/galati/data/metab/ITS/MOCK/ITS_mock24
+RAW_ITS=/homedir/galati/data/metab/ITS/RAW
 
 #for f in ${MOCK}
 #do
@@ -35,7 +34,7 @@ ls ${f}/*R1*gz | cut -d/ -f6 |cut -d_ -f1,2 >> sample_names.tsv
 done
 
 echo "Suppression des adapters ITS"
-TRIM_ITS=/homedir/galati/data/ITS_adapter_test
+TRIM_ITS=/homedir/galati/data/metab/ITS/TRIM
 mkdir ${TRIM_ITS}
 
 for NAME in `awk '{print $1}' sample_names.tsv`
@@ -56,8 +55,8 @@ ls ${TRIM_ITS}
 echo "Suppresison des fichiers de rapport"
 # rm ${TRIM_ITS}/*.txt
 
-IN=/homedir/galati/data/ITS_adapter_test/
-OUT=/homedir/galati/data/ITS_primer_trimmed2/
+IN=/homedir/galati/data/metab/ITS/TRIM/
+OUT=/homedir/galati/data/metab/ITS/PRIM/
 
 mkdir ${OUT}
 
@@ -90,6 +89,8 @@ mkdir ${OUT}'QC/'
 fastqc -t ${NSOLTS} ${OUT}/*fastq* -o ${OUT}'QC/'
 multiqc ${OUT}'QC/' -o ${OUT}'QC/'
 
+mkdir /homedir/galati/data/metab/ITS/PRIM_qc/
+mv /homedir/galati/data/metab/ITS/PRIM/qc/* /homedir/galati/data/metab/ITS/PRIM_qc/
 
 # JOB END
 date
