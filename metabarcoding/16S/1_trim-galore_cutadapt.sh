@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #$ -q bigmem.q
-#$ -N trim-galore_cutadapt_16S
+#$ -N a-p_16S
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 10
 #$ -l mem_free=8G
