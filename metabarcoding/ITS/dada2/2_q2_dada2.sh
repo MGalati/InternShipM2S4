@@ -14,7 +14,7 @@ source activate qiime2-2018.11
 
 # JOB BEGIN
 
-IN=/homedir/galati/data/metab/16S
+IN=/homedir/galati/data/metab/ITS
 
 RUN1=PRIM
 RUN2=ITS_mock24
