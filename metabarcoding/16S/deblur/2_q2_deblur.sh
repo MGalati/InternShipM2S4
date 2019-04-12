@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #$ -q bigmem.q
-#$ -N q2_deblur_16S
+#$ -N deblur_16S
 #$ -M mathias.galati@cirad.fr
-#$ -pe parallel_smp 25
-#$ -l mem_free=16G
+#$ -pe parallel_smp 10
+#$ -l mem_free=8G
 #$ -V
 #$ -cwd
 
@@ -14,21 +14,9 @@ source activate qiime2-2018.11
 
 # JOB BEGIN
 
-mkdir /homedir/galati/data/16S_primer_trimmed2_analysis/
-mv /homedir/galati/data/16S_primer_trimmed2/*.txt /homedir/galati/data/16S_primer_trimmed2_analysis/
-mv /homedir/galati/data/16S_primer_trimmed2/QC/ /homedir/galati/data/16S_primer_trimmed2_analysis/
-mv /homedir/galati/mock/analysis/16S/pair/Mock_S280/qc/ /homedir/galati/mock/analysis/16S/pair/Mock_S280_qc/
-mv /homedir/galati/mock/analysis/16S/pair/Mock_S280 /homedir/galati/data/
+IN=/homedir/galati/data/metab/16S
 
-rm -r deblur_output
-rm -r dada2_output
-rm -r deblur_output
-rm -r phylogeny
-rm -r taxonomy
-
-IN=/homedir/galati/data
-
-RUN1=16S_primer_trimmed2
+RUN1=PRIM
 RUN2=Mock_S280
 
 for seqs in ${RUN1} ${RUN2}
@@ -163,7 +151,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 mkdir taxonomy
 
 qiime feature-classifier classify-sklearn \
-  --i-classifier /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza \
+  --i-classifier /homedir/galati/data/metab/16S/classifier/silva-132-99-nb-classifier.qza \
   --i-reads deblur_output/representative_sequences.qza \
   --o-classification taxonomy/16S_taxonomy.qza \
   --p-n-jobs ${NSLOTS} \
@@ -201,7 +189,7 @@ sed -i "1d" export/ASV-table.biom.tsv
 sed -i "s/#OTU ID/#OTUID/g" export/feature-table.biom.tsv
 
 #Export Taxonomy
-qiime tools export --input-path /homedir/galati/data/classifier/silva-132-99-nb-classifier.qza --output-path export
+qiime tools export --input-path /homedir/galati/data/metab/16S/classifier/silva-132-99-nb-classifier.qza --output-path export
 
 biom add-metadata -i export/ASV-table.biom.tsv  -o export/ASV-table-silva-132-taxonomy.biom \
   --observation-metadata-fp export/silva-132_taxonomy.tsv \
@@ -228,4 +216,3 @@ zip export/export.zip export/* deblur_outpu*/*qzv taxonomy/*.qzv
 date
 
 exit 0
-
