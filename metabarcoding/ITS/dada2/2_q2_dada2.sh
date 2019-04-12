@@ -40,7 +40,7 @@ for seqs in ${RUN1} ${RUN2}
 do
 
 truncF=0
-truncL=220
+truncL=0
 trimF=0
 trimL=0
 maxee=2
