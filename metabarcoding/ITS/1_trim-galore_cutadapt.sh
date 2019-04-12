@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #$ -q bigmem.q
-#$ -N trim-galore_cutadapt_ITS
+#$ -N a-p_ITS
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 10
 #$ -l mem_free=8G
@@ -18,7 +18,6 @@ source activate trimgalore
 echo "Récupération des noms d'échantillons"
 
 rm sample_names.tsv
-rm /homedir/galati/data/ITS/Undetermined*
 
 MOCK=/homedir/galati/data/metab/ITS/MOCK/ITS_mock24
 RAW_ITS=/homedir/galati/data/metab/ITS/RAW
@@ -30,7 +29,7 @@ RAW_ITS=/homedir/galati/data/metab/ITS/RAW
 
 for f in ${RAW_ITS}
 do
-ls ${f}/*R1*gz | cut -d/ -f6 |cut -d_ -f1,2 >> sample_names.tsv
+ls ${f}/*R1*gz | cut -d/ -f8 |cut -d_ -f1,2 >> sample_names.tsv
 done
 
 echo "Suppression des adapters ITS"
