@@ -89,7 +89,8 @@ fastqc -t ${NSOLTS} ${OUT}/*fastq* -o ${OUT}'QC/'
 multiqc ${OUT}'QC/' -o ${OUT}'QC/'
 
 mkdir /homedir/galati/data/metab/ITS/PRIM_qc/
-mv /homedir/galati/data/metab/ITS/PRIM/qc/* /homedir/galati/data/metab/ITS/PRIM_qc/
+mv /homedir/galati/data/metab/ITS/PRIM/qc/ ../PRIM_qc
+mv /homedir/galati/data/metab/ITS/PRIM/*.txt ../PRIM_qc
 
 # JOB END
 date
