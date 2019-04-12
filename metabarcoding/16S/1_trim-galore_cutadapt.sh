@@ -27,7 +27,7 @@ RAW_16S=/homedir/galati/data/metab/16S/RAW
 
 for f in ${RAW_16S}
 do
-ls ${f}/*R1*gz | cut -d/ -f6 |cut -d_ -f1,2 >> sample_names.tsv
+ls ${f}/*R1*gz | cut -d/ -f8 |cut -d_ -f1,2 >> sample_names.tsv
 done
 
 echo "Suppression des adapters 16S"
