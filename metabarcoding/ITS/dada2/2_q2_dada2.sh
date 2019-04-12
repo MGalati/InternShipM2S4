@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #$ -q bigmem.q
-#$ -N q2_dada2_ITS
+#$ -N dada2_ITS
 #$ -M mathias.galati@cirad.fr
-#$ -pe parallel_smp 25
-#$ -l mem_free=20G
+#$ -pe parallel_smp 10
+#$ -l mem_free=8G
 #$ -V
 #$ -cwd
 
@@ -14,17 +14,9 @@ source activate qiime2-2018.11
 
 # JOB BEGIN
 
-mkdir /homedir/galati/data/ITS_primer_trimmed2_analysis/
-mv /homedir/galati/data/ITS_primer_trimmed2/*.txt /homedir/galati/data/ITS_primer_trimmed2_analysis/
-mv /homedir/galati/data/ITS_primer_trimmed2/QC/ /homedir/galati/data/ITS_primer_trimmed2_analysis/
+IN=/homedir/galati/data/metab/16S
 
-rm -r dada2_output
-rm -r phylogeny
-rm -r taxonomy
-
-IN=/homedir/galati/data
-
-RUN1=ITS_primer_trimmed2
+RUN1=PRIM
 RUN2=ITS_mock24
 
 for seqs in ${RUN1} ${RUN2}
@@ -54,19 +46,8 @@ trimL=0
 maxee=2
 truncq=10
 nreadslearn=10000000
-# pour tester
-
-#6000000
-#0 - Use all input reads 
-#1000000 default
-#100000000 working
-#1000000000 working MSQ4 & MSQ6
-#100000000000 NOT working MSQ4
 chim=consensus
-#consensu = faster
-#pooled
 
-mkdir dada2_output
 mkdir dada2_output_${seqs}
 
 qiime dada2 denoise-paired --i-demultiplexed-seqs ${IN}/${seqs}_reads.qza \
@@ -173,7 +154,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 mkdir taxonomy
 
 qiime feature-classifier classify-sklearn \
-  --i-classifier /homedir/galati/data/classifier/unite-ver7-dynamic-classifier-01.12.2017.qza \
+  --i-classifier /homedir/galati/data/metab/ITS/classifier/unite-ver7-dynamic-classifier-01.12.2017.qza \
   --i-reads dada2_output/representative_sequences.qza \
   --o-classification taxonomy/ITS_taxonomy.qza \
   --p-n-jobs ${NSLOTS} \
@@ -210,7 +191,7 @@ sed -i "1d" export/ASV-table.biom.tsv
 sed -i "s/#OTU ID/#OTUID/g" export/feature-table.biom.tsv
 
 #Export Taxonomy
-qiime tools export --input-path /homedir/galati/data/classifier/unite-ver7-dynamic-classifier-01.12.2017.qza --output-path export
+qiime tools export --input-path /homedir/galati/data/metab/ITS/classifier/unite-ver7-dynamic-classifier-01.12.2017.qza --output-path export
 
 biom add-metadata -i export/ASV-table.biom.tsv  -o export/ASV-table-unite-ver7-taxonomy.biom \
   --observation-metadata-fp export/unite-ver7_taxonomy.tsv \
