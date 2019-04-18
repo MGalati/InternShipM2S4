@@ -3,7 +3,7 @@
 #$ -q short.q
 #$ -N Svsearch_ITS
 #$ -M mathias.galati@cirad.fr
-#$ -pe parallel_smp 8
+#$ -pe parallel_smp 1
 #$ -l mem_free=6G
 #$ -V
 #$ -cwd
@@ -23,7 +23,7 @@ RUN2=ITS_mock24
 
 for seqs in ${RUN1} ${RUN2}
 do
-qiime tools import --type SampleData[SequencesWithQuality] \
+qiime tools import --type SampleData[PairedEndSequencesWithQuality] \
                    --input-path ${IN}/${seqs} \
                    --output-path ${IN}/${seqs}_reads.qza \
                    --input-format CasavaOneEightSingleLanePerSampleDirFmt 
