@@ -3,7 +3,7 @@
 #$ -q short.q
 #$ -N Svsearch_16S
 #$ -M mathias.galati@cirad.fr
-#$ -pe parallel_smp 8
+#$ -pe parallel_smp 1
 #$ -l mem_free=6G
 #$ -V
 #$ -cwd
@@ -23,7 +23,7 @@ RUN2=Mock_S280
 
 for seqs in ${RUN1} ${RUN2}
 do
-qiime tools import --type SampleData[SequencesWithQuality] \
+qiime tools import --type SampleData[JoinedSequencesWithQuality] \
                    --input-path ${IN}/${seqs} \
                    --output-path ${IN}/${seqs}_reads.qza \
                    --input-format CasavaOneEightSingleLanePerSampleDirFmt 
