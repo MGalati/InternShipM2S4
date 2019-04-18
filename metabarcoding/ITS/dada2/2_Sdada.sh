@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#$ -q bigmem.q
+#$ -q short.q
 #$ -N Sdada2_ITS
 #$ -M mathias.galati@cirad.fr
-#$ -pe parallel_smp 8
+#$ -pe parallel_smp 1
 #$ -l mem_free=6G
 #$ -V
 #$ -cwd
@@ -17,7 +17,7 @@ source activate qiime2-2018.11
 IN=/homedir/galati/data/metab/ITS
 
 RUN1=SUB
-RUN2=ITS_mock9
+RUN2=ITS_mock24
 """
 echo 'Import sequences'
 for seqs in ${RUN1} ${RUN2}
@@ -37,6 +37,7 @@ qiime demux summarize \
   --verbose
 done
 """
+echo 'Dada2'
 for seqs in ${RUN1} ${RUN2}
 do
 
@@ -45,7 +46,7 @@ truncL=0
 trimF=0
 trimL=0
 maxee=2
-truncq=10
+truncq=5
 nreadslearn=10000000
 chim=consensus
 
@@ -67,53 +68,52 @@ qiime dada2 denoise-paired --i-demultiplexed-seqs ${IN}/${seqs}_reads.qza \
                            --verbose
 #                          --output-dir dada2_output \
 
-### Viewing denoising stats
+echo 'Viewing denoising stats'
 qiime metadata tabulate \
   --m-input-file dada2_output_${seqs}/${seqs}_denoising_stats.qza \
   --o-visualization dada2_output_${seqs}/${seqs}_denoising_stats.qza
 
-#summarize your filtered/ASV table data
+echo 'summarize your filtered/ASV table data'
 qiime tools export --input-path dada2_output_${seqs}/${seqs}_denoising_stats.qza --output-path dada2_output_${seqs}/${seqs}
 
 qiime feature-table summarize --i-table dada2_output_${seqs}/${seqs}_table.qza --o-visualization dada2_output_${seqs}/${seqs}_table_summary.qzv --verbose
 
 done
 
-### Merging denoised data
-
-# ASV table
+echo 'Merging denoised data'
+echo 'ASV table'
 qiime feature-table merge \
   --i-tables dada2_output_${RUN1}/${RUN1}_table.qza \
   --i-tables dada2_output_${RUN2}/${RUN2}_table.qza \
   --o-merged-table dada2_output/table.qza
 
-# Representative sequences
+echo 'Representative sequences'
 qiime feature-table merge-seqs \
   --i-data dada2_output_${RUN1}/${RUN1}_representative_sequences.qza \
   --i-data dada2_output_${RUN2}/${RUN2}_representative_sequences.qza \
   --o-merged-data dada2_output/representative_sequences.qza
 
 #cannot
-qiime feature-table merge \
-  --i-tables dada2_output/${RUN1}_denoising_stats.qza  \
-  --i-tables dada2_output/${RUN2}_denoising_stats.qza  \
-  --o-merged-table dada2_output/denoising_stats.qza
+#qiime feature-table merge \
+#  --i-tables dada2_output/${RUN1}_denoising_stats.qza  \
+#  --i-tables dada2_output/${RUN2}_denoising_stats.qza  \
+#  --o-merged-table dada2_output/denoising_stats.qza
 
-#summarize
+echo 'summarize'
 qiime feature-table summarize \
   --i-table dada2_output/table.qza \
   --o-visualization dada2_output/table.qzv 
-  ##--m-sample-metadata-file sample-metadata.tsv
+  --m-sample-metadata-file /homedir/galati/data/metab/ITS/metadata/sample-metadata.tsv
 
 qiime feature-table tabulate-seqs \
   --i-data dada2_output/representative_sequences.qza\
   --o-visualization dada2_output/representative_sequences.qzv
 
 cannot
-qiime feature-table summarize --i-table dada2_output/denoising_stats.qza \
-  --o-visualization dada2_output/denoising_stats.qzv
+#qiime feature-table summarize --i-table dada2_output/denoising_stats.qza \
+#  --o-visualization dada2_output/denoising_stats.qzv
 
-#export
+echo 'export'
 qiime tools export dada2_output/denoising_stats.qza --output-path dada2_output
 
 qiime feature-table summarize \
