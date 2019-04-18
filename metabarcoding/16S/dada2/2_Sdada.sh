@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#$ -q bigmem.q
+#$ -q short.q
 #$ -N Sdada2_16S
 #$ -M mathias.galati@cirad.fr
 #$ -pe parallel_smp 8
@@ -110,7 +110,7 @@ echo 'summarize'
 qiime feature-table summarize \
   --i-table dada2_output/table.qza \
   --o-visualization dada2_output/table.qzv 
-  ##--m-sample-metadata-file sample-metadata.tsv
+  --m-sample-metadata-file /homedir/galati/data/metab/16S/metadata/sample-metadata.tsv
 
 qiime feature-table tabulate-seqs \
   --i-data dada2_output/representative_sequences.qza\
@@ -167,7 +167,7 @@ qiime feature-classifier classify-sklearn \
 qiime metadata tabulate \
   --m-input-file taxonomy/16S_taxonomy.qza \
   --o-visualization taxonomy/16S_taxonomy.qzv
-"""
+
 # necessite metadata
 qiime taxa barplot \
   --i-table dada2_output/table.qza \
@@ -191,13 +191,13 @@ cp export/ASV-table.biom.tsv export/feature-table.biom.tsv
 #https://askubuntu.com/questions/20414/find-and-replace-text-within-a-file-using-commands
 # ASV table for phyloseq
 
-sed -i "s/#OTU ID/OTUID/g" export/ASV-table.biom.tsv
-sed -i "1d" export/ASV-table.biom.tsv
+sed -i 's/#OTU ID/OTUID/g' export/ASV-table.biom.tsv
+sed -i '1d' export/ASV-table.biom.tsv
 
-sed -i "s/#OTU ID/#OTUID/g" export/feature-table.biom.tsv
-
+sed -i 's/#OTU ID/#OTUID/g' export/feature-table.biom.tsv
+"""
 echo 'Export Taxonomy'
-qiime tools export --input-path /homedir/galati/data/metab/16S/classifier/silva-132-99-nb-classifier.qza --output-path export
+qiime tools export --input-path /homedir/galati/data/metab/16S/classifier/silva-132-99-nb-classifier.qza --output-path export/silva-132_taxonomy.tsv
 
 biom add-metadata -i export/ASV-table.biom.tsv -o export/ASV-table-silva-132-taxonomy.biom \
   --observation-metadata-fp export/silva-132_taxonomy.tsv \
