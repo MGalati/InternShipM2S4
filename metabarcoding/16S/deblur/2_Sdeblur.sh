@@ -3,7 +3,7 @@
 #$ -q short.q
 #$ -N Sdeblur_16S
 #$ -M mathias.galati@cirad.fr
-#$ -pe parallel_smp 8
+#$ -pe parallel_smp 1
 #$ -l mem_free=6G
 #$ -V
 #$ -cwd
@@ -24,7 +24,7 @@ deblur=/homedir/galati/data/metab/16S/deblur
 
 for seqs in ${RUN1} ${RUN2}
 do
-qiime tools import --type SampleData[SequencesWithQuality] \
+qiime tools import --type SampleData[JoinedSequencesWithQuality] \
                    --input-path ${IN}/${seqs} \
                    --output-path ${deblur}/${seqs}_reads.qza \
                    --input-format CasavaOneEightSingleLanePerSampleDirFmt 
@@ -219,4 +219,3 @@ zip export/export.zip export/* deblur_outpu*/*qzv taxonomy/*.qzv
 date
 
 exit 0
-
