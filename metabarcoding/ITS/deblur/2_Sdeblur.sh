@@ -16,9 +16,9 @@ source activate qiime2-2018.11
 
 IN=/homedir/galati/data/metab/ITS
 
-RUN1=SUB_R1
-RUN2=ITS_mock9_R1
-
+RUN1=SUB
+RUN2=ITS_mock24
+"""
 mkdir /homedir/galati/data/metab/ITS/deblur
 deblur=/homedir/galati/data/metab/ITS/deblur
 
@@ -40,17 +40,18 @@ qiime demux summarize \
 done
 
 mkdir deblur_output
-
+"""
+echo '************************************************************************************************************'
 for seqs in ${RUN1} ${RUN2}
 do
 
-### Quality filter
-
+echo 'Quality filter'
 qiime quality-filter q-score-joined \
  --i-demux ${deblur}/${seqs}_reads.qza \
  --o-filtered-sequences deblur_output_${seqs}/${seqs}_demux-joined-filtered.qza \
  --o-filter-stats deblur_output_${seqs}/${seqs}_demux-joined-filter-stats.qza
 
+echo 'Denoise'
 qiime deblur denoise-other \
   --i-demultiplexed-seqs deblur_output_${seqs}/${seqs}_demux-joined-filtered.qza \
   --p-trim-length 220 \
@@ -60,32 +61,32 @@ qiime deblur denoise-other \
   --o-stats deblur_output_${seqs}/${seqs}_deblur-stats.qza
 
 
-### Viewing denoising stats
+echo 'Viewing denoising stats'
 qiime metadata tabulate \
   --m-input-file deblur_output_${seqs}/${seqs}_demux-joined-filter-stats.qza \
   --o-visualization deblur_output_${seqs}/${seqs}_demux-filter-stats.qzv
-
 
 qiime deblur visualize-stats \
   --i-deblur-stats deblur_output_${seqs}/${seqs}_deblur-stats.qza \
   --o-visualization deblur_output_${seqs}/${seqs}_deblur-joined-stats.qzv
 
-#summarize your filtered/ASV table data
+echo 'summarize your filtered/ASV table data'
 qiime tools export --input-path deblur_output_${seqs}/${seqs}_demux-filter-stats.qza --output-path deblur_output_${seqs}/${seqs}
 
 qiime feature-table summarize --i-table deblur_output_${seqs}/${seqs}_table-deblur.qza --o-visualization deblur_output_${seqs}/${seqs}_table_summary.qzv --verbose
 
 done
+echo 'Fin de la bouche vsearch'
 
-### Merging denoised data
+echo 'Merging denoised data'
 
-# ASV table
+echo 'ASV table'
 qiime feature-table merge \
   --i-tables deblur_output_${RUN1}/${RUN1}_table-deblur.qza \
   --i-tables deblur_output_${RUN2}/${RUN2}_table-deblur.qza \
   --o-merged-table deblur_output/table.qza
 
-# Representative sequences
+echo 'Representative sequences'
 qiime feature-table merge-seqs \
   --i-data deblur_output_${RUN1}/${RUN1}_representative_sequences.qza \
   --i-data deblur_output_${RUN2}/${RUN2}_representative_sequences.qza \
@@ -97,7 +98,7 @@ qiime feature-table merge-seqs \
 #  --i-tables deblur_output/${RUN2}_denoising_stats.qza  \
 #  --o-merged-table deblur_output/denoising_stats.qza
 
-#summarize
+echo 'summarize'
 qiime feature-table summarize \
   --i-table deblur_output/table.qza \
   --o-visualization deblur_output/table.qzv 
@@ -155,7 +156,6 @@ qiime metadata tabulate \
 qiime tools export --input-path taxonomy/ITS_taxonomy.qza --output-path taxonomy
 mv taxonomy/taxonomy.tsv taxonomy/ITS_taxonomy.tsv
 
-
 ### Exporting and modifying BIOM tables
 
 #Creating a TSV BIOM table
@@ -194,7 +194,6 @@ mv export/tree.nwk export/rooted-tree.nwk
 #ls export/feature-table.biom.tsv export/taxonomy.tsv export/unrooted-tree.nwk export/rooted-tree.nwk
 
 zip export/export.zip export/* deblur_outpu*/*qzv taxonomy/*.qzv
-
 
 # JOB END
 date
