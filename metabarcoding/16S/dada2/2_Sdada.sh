@@ -150,10 +150,6 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 #qiime tools export --input-path dada2_output/deblur_table_filt.qza --output-path dada2_output_exported
 #qiime tools export --input-path dada2_output/rep_seqs_filt.qza --output-path dada2_output_exported
 
-### Assign Taxonomy
-# loop to test various taxonomic database - pour toi laisser juste silva123 - 
-# https://www.dropbox.com/s/5tckx2vhrmf3flp/silva-132-99-nb-classifier.qza?dl=0
-
 echo 'taxonomy'
 mkdir taxonomy
 
@@ -177,7 +173,6 @@ qiime taxa barplot \
 
 qiime tools export --input-path taxonomy/16S_taxonomy.qza --output-path taxonomy
 mv taxonomy/taxonomy.tsv taxonomy/16S_taxonomy.tsv
-
 
 echo 'Exporting and modifying BIOM tables'
 
@@ -213,12 +208,10 @@ mv export/tree.nwk export/unrooted-tree.nwk
 qiime tools export --input-path phylogeny/rooted-tree.qza --output-path export
 mv export/tree.nwk export/rooted-tree.nwk
 
-
 # For phyloseq you will need :
-#ls export/feature-table.biom.tsv export/taxonomy.tsv export/unrooted-tree.nwk export/rooted-tree.nwk
+ls export/feature-table.biom.tsv export/taxonomy.tsv export/unrooted-tree.nwk export/rooted-tree.nwk
 
 zip export/export.zip export/* dada2_outpu*/*qzv taxonomy/*.qzv
-
 
 # JOB END
 date
