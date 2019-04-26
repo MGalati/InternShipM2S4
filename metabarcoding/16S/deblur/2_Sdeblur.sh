@@ -42,6 +42,7 @@ done
 
 mkdir deblur_output
 
+
 for seqs in ${RUN1} ${RUN2}
 do
 
@@ -62,7 +63,7 @@ qiime quality-filter q-score-joined \
  --o-filtered-sequences deblur_output_${seqs}/${seqs}_demux-joined-filtered.qza \
  --o-filter-stats deblur_output_${seqs}/${seqs}_demux-joined-filter-stats.qza
 
-echo 'Deblur de ${seqs}'
+echo 'Deblur denoise'
 qiime deblur denoise-16S \
   --i-demultiplexed-seqs deblur_output_${seqs}/${seqs}_demux-joined-filtered.qza \
   --p-trim-length 220 \
@@ -171,6 +172,7 @@ echo 'export'
 qiime tools export --input-path taxonomy/16S_taxonomy.qza --output-path taxonomy
 mv taxonomy/taxonomy.tsv taxonomy/16S_taxonomy.tsv
 
+
 echo 'Exporting and modifying BIOM tables'
 echo 'Creating a TSV BIOM table'
 qiime tools export --input-path deblur_output/table.qza --output-path export
@@ -203,10 +205,12 @@ mv export/tree.nwk export/unrooted-tree.nwk
 qiime tools export --input-path phylogeny/rooted-tree.qza --output-path export
 mv export/tree.nwk export/rooted-tree.nwk
 
+
 # For phyloseq you will need :
 #ls export/feature-table.biom.tsv export/taxonomy.tsv export/unrooted-tree.nwk export/rooted-tree.nwk
 
 zip export/export.zip export/* deblur_outpu*/*qzv taxonomy/*.qzv
+
 
 # JOB END
 date
