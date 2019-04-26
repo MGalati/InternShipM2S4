@@ -208,10 +208,12 @@ mv export/tree.nwk export/unrooted-tree.nwk
 qiime tools export --input-path phylogeny/rooted-tree.qza --output-path export
 mv export/tree.nwk export/rooted-tree.nwk
 
+
 # For phyloseq you will need :
 ls export/feature-table.biom.tsv export/taxonomy.tsv export/unrooted-tree.nwk export/rooted-tree.nwk
 
 zip export/export.zip export/* dada2_outpu*/*qzv taxonomy/*.qzv
+
 
 # JOB END
 date
