@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#$ -q short.q
+#$ -q bigmem.q
 #$ -N Svsearch_16S
 #$ -M mathias.galati@cirad.fr
-#$ -pe parallel_smp 1
+#$ -pe parallel_smp 10
 #$ -l mem_free=6G
 #$ -V
 #$ -cwd
@@ -124,6 +124,7 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 # loop to test various taxonomic database - pour toi laisser juste silva123 - 
 # https://www.dropbox.com/s/5tckx2vhrmf3flp/silva-132-99-nb-classifier.qza?dl=0
 
+
 mkdir taxonomy
 echo 'Classifier'
 qiime feature-classifier classify-sklearn \
@@ -146,6 +147,7 @@ echo 'necessite metadata'
 
 qiime tools export --input-path taxonomy/16S_taxonomy.qza --output-path taxonomy
 mv taxonomy/taxonomy.tsv taxonomy/16S_taxonomy.tsv
+
 
 ### Exporting and modifying BIOM tables
 
@@ -180,10 +182,12 @@ mv export/tree.nwk export/unrooted-tree.nwk
 qiime tools export --input-path phylogeny/rooted-tree.qza --output-path export
 mv export/tree.nwk export/rooted-tree.nwk
 
+
 # For phyloseq you will need :
 #ls export/feature-table.biom.tsv export/taxonomy.tsv export/unrooted-tree.nwk export/rooted-tree.nwk
 
 zip export/export.zip export/* vsearch_outpu*/*qzv taxonomy/*.qzv
+
 
 # JOB END
 date
