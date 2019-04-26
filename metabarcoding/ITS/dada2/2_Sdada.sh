@@ -3,7 +3,7 @@
 #$ -q bigmem.q
 #$ -N Sdada2_ITS
 #$ -M mathias.galati@cirad.fr
-#$ -pe parallel_smp 4
+#$ -pe parallel_smp 15
 #$ -l mem_free=6G
 #$ -V
 #$ -cwd
@@ -175,6 +175,7 @@ echo 'export'
 qiime tools export --input-path taxonomy/ITS_taxonomy.qza --output-path taxonomy
 mv taxonomy/taxonomy.tsv taxonomy/ITS_taxonomy.tsv
 
+
 echo 'Exporting and modifying BIOM tables'
 echo 'Creating a TSV BIOM table'
 qiime tools export --input-path dada2_output/table.qza --output-path export
@@ -207,10 +208,12 @@ mv export/tree.nwk export/unrooted-tree.nwk
 qiime tools export --input-path phylogeny/rooted-tree.qza --output-path export
 mv export/tree.nwk export/rooted-tree.nwk
 
+
 # For phyloseq you will need :
 #ls export/feature-table.biom.tsv export/taxonomy.tsv export/unrooted-tree.nwk export/rooted-tree.nwk
 
 zip export/export.zip export/* dada2_outpu*/*qzv taxonomy/*.qzv
+
 
 # JOB END
 date
