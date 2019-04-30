@@ -41,4 +41,9 @@ Un fichier de biliographie sera édité et mis à dispostion en fin de stage
 - tuto
     * Répertoire contentenant :  
         * Un fichier de texte de notes sur le début d'élaboration d'un workflow avec Snakemake sous conda 
-***************                
+*************** 
+### 2. Métabarcoding
+***************
+### 3. Métagénomique
+***************
+### 4. Ressources
