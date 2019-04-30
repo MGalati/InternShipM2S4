@@ -1,5 +1,5 @@
 ### GALATI Mathias 
-### Etudiant à l'Unisversité de Strasbourg en Bioligie Structurale intégrative et Bio-Informatique
+### Etudiant à l'Université de Strasbourg en Biologie Structurale intégrative et Bio-Informatique
 ### Stage M2S3 2019 : CIRAD Montpellier
 
 ***************
