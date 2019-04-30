@@ -56,6 +56,16 @@ Ensuite, les scripts 1_trim-galore_cutadapt.sh permettent de supprimer les prime
 <!-- -->
 Puis dans leurs répertoires respectifs, les scripts 2_S* permettent les analyses sur les jeux de données sous-échantillonnés et les scripts 2_q2_* permettent les analyses sur les vrais jeux de données raccourcis des primers et des adaptateurs.
 
+### Avancement des scripts finaux
+- [X] 16S
+    - [X] dada2
+    - [X] deblur
+    - [X] vsearch
+- [X] ITS
+    - [X] dada2
+    - [X] deblur
+    - [X] vsearch
+
 ### Statsitiques
 [WORK IN PROGRESS]
 
