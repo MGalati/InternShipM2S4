@@ -68,6 +68,12 @@ Puis dans leurs répertoires respectifs, les scripts 2_S* permettent les analyse
 
 ### Statsitiques
 [WORK IN PROGRESS]
+Issus des analyses bioinformatiques précédentes, les fichiers suivants sont nécéssaires pour les scripts de statistiques :    
+* ASV-table.biom.tsv qui correspond à la table d'OTU/ASV)
+* taxonomy.tsv qui correspond à l'assignation taxonomique
+* metadata.tsv qui correspond à l'ensemble des métadonnées des expériences
+
+Dans le fichier des métadonnées, il faut créer une colonne SAMPLE en plus du nom de colonnes.
 
 ***************
 ### 3. Métagénomique   
