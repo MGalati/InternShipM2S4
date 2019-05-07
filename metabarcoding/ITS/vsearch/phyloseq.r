@@ -190,6 +190,9 @@ ps_percent <- phyloseq(OTU_percent, TAX, SAM)
 ######### DECONTAM ###########
 ##############################
 
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("decontam")
 library(decontam); packageVersion("decontam")
 
 summary(sample_sums(ps))
@@ -202,7 +205,7 @@ df <- df[order(df$LibrarySize),]
 df$Index <- seq(nrow(df))
 
 pdf("LibrarySize.pdf")
-ggplot(data=df, aes(x=Index, y=LibrarySize, color=BLANK)) + geom_point()
+ggplot(data=df, aes(x=Index, y=LibrarySize, color=Weight)) + geom_point()
 dev.off()
 
 as.numeric(get_variable(ps, "DNA"))
