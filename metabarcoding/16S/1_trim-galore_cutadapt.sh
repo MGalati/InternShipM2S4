@@ -25,10 +25,8 @@ RAW_16S=/homedir/galati/data/metab/16S/RAW
 #ls ${f}/*R1*gz | cut -d/ -f8 |cut -d_ -f1,2 >> sample_names.tsv
 #done
 
-for f in ${RAW_16S}
-do
-ls ${f}/*R1*gz | cut -d/ -f8 |cut -d_ -f1,2 >> sample_names.tsv
-done
+find ${RAW_16S} -type f -name "*_R1_*.fastq.gz" | \
+    sed 's/.*\/// ; s/_[^_]*//2g' > sample_names.tsv
 
 echo "Suppression des adapters 16S"
 TRIM_16S=/homedir/galati/data/metab/16S/TRIM
