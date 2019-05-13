@@ -41,7 +41,7 @@ qiime demux summarize \
 done
 
 mkdir deblur_output
-"""
+
 for seqs in ${RUN1} ${RUN2}
 do
 
@@ -168,10 +168,10 @@ qiime taxa barplot \
   --i-taxonomy taxonomy/ITS_taxonomy.qza \
   --o-visualization taxonomy/ITS_taxa-bar-plots.qzv \
   --m-metadata-file /homedir/galati/data/metab/ITS/metadata/metadata.tsv 
-
+"""
 echo 'export'
-qiime tools export --input-path taxonomy/16S_taxonomy.qza --output-path taxonomy
-mv taxonomy/taxonomy.tsv taxonomy/16S_taxonomy.tsv
+qiime tools export --input-path taxonomy/ITS_taxonomy.qza --output-path taxonomy
+mv taxonomy/taxonomy.tsv taxonomy/ITS_taxonomy.tsv
 
 
 echo 'Exporting and modifying BIOM tables'
