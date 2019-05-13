@@ -6,7 +6,7 @@
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 BiocManager::install("phyloseq")
-library(phyloseq)
+library(phyloseq); packageVersion("phyloseq")
 
 #Note : de otu ITS à enlever et de metadata blank_8, T-16S-pomme, T-16S-pomme2, T-ITS-mangue, T-ITS-mangue2
 #Vérifier à avoir biuen des _
@@ -29,6 +29,7 @@ ncol(taxa)
 metadata <- read.table(file = 'metadata_ITS.tsv', sep = ',', dec=",", header = TRUE, row.names = 1)
 nrow(metadata)
 ncol(metadata)
+
 
 # REMOVE SAMPLES WITHOUT READS
 
@@ -89,9 +90,6 @@ otu_percent <- as.matrix(otu_percent)
 colnames(otu)
 rownames(metadata)
 
-ncol(otu)
-nrow(metadata)
-
 #otu2 <- otu[,c(1:251)] # remove the last "Undertemined" column (Pour Hans)
 #otu2 <- as.matrix(otu2)
 
@@ -135,16 +133,18 @@ install.packages("geneplotter")
 install.packages("DESeq2")
 library(DESeq2)
 
+source("https://bioconductor.org/biocLite.R")
+BiocInstaller::biocLite(c("DESeq2"))
+
+#Export .csv file
 write.table(x = otu2, file = "/home/galati/Téléchargements/otu2.csv")
-any(sum(otu2)!=0)
+any(sum(otu2)!=0) #Asking if there is 0 in table
 
 dds <- DESeqDataSetFromMatrix(countData=otu2, colData=metadata2, design=~Exposure)
 dds <- DESeq(dds)
 #Erreur : impossible d'allouer un vecteur de taille 216.8 Mo
 
 otu_deseq <- counts(dds, normalized=TRUE) 
-
-
 
 
 ##############################
@@ -161,6 +161,12 @@ otu_norm <- as.matrix(otu_norm)
 otu_log <- as.matrix(otu_log)
 otu_percent <- as.matrix(otu_percent)
 #otu_deseq <- as.matrix(otu_deseq)
+
+#OTU abundance data must have non-zero dimensions.
+otu_norm <- (otu_norm+1)
+otu_log <- (otu_log+1)
+otu_percent <- (otu_percent+1)
+#otu_deseq <- (otu_deseq+1)
 
 OTU = otu_table(otu, taxa_are_rows =TRUE)
 OTU_norm = otu_table(otu_norm, taxa_are_rows = TRUE)
@@ -184,90 +190,22 @@ ps_percent <- phyloseq(OTU_percent, TAX, SAM)
 #ps_deseq <- phyloseq(OTU_deseq, TAX, SAM)
 
 
+ps_sub <- rarefy_even_depth(ps, rngseed=TRUE)
+ps_sub_norm <- rarefy_even_depth(ps_norm, rngseed=TRUE)
+ps_sub_log <- rarefy_even_depth(ps_log, rngseed=TRUE)
+ps_sub_percent <- rarefy_even_depth(ps_percent, rngseed=TRUE)
+#ps_sub_deseq <- rarefy_even_depth(ps_deseq, rngseed=TRUE)
 
 
 ##############################
-######### DECONTAM ###########
+####### RICHNESS PLOT ########
 ##############################
+library(dplyr)
+subset_samples(ps_norm, Blank == "Control sample") %>%
+  plot_richness(measures=c("Observed","Shannon","ACE")) -> toto
 
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
-BiocManager::install("decontam")
-library(decontam); packageVersion("decontam")
-
-summary(sample_sums(ps))
-summary(taxa_sums(ps))
-#summary(otu_sums(ps))
-
-df <- as.data.frame(sample_data(ps)) # Put sample_data into a ggplot-friendly data.frame
-df$LibrarySize <- sample_sums(ps)
-df <- df[order(df$LibrarySize),]
-df$Index <- seq(nrow(df))
-
-pdf("LibrarySize.pdf")
-ggplot(data=df, aes(x=Index, y=LibrarySize, color=Weight)) + geom_point()
-dev.off()
-
-as.numeric(get_variable(ps, "DNA"))
-get_variable(ps, "DNA")
-sample_data(ps)
-
-sample_data(ps)$DNA <- as.numeric(get_variable(ps, "DNA"))
-
-
-#  Identify Contaminants - FREQUENCY
-contamdf.freq <- isContaminant(ps, method="frequency", conc="DNA")
-head(contamdf.freq)
-
-table(contamdf.freq$contaminant)
-head(which(contamdf.freq$contaminant))
-
-plot_frequency(ps, taxa_names(ps)[c(1,3)], conc="DNA") + 
-  xlab("DNA Concentration (PicoGreen fluorescent intensity)")
-
-set.seed(100)
-plot_frequency(ps, taxa_names(ps)[sample(which(contamdf.freq$contaminant),3)], conc="DNA") +
-  xlab("DNA Concentration (PicoGreen fluorescent intensity)")
-
-
-ps.noncontam <- prune_taxa(!contamdf.freq$contaminant, ps)
-ps.noncontam
-
-# Identify Contaminants - PREVALENCE
-any(taxa_sums(ps) == 0)
-psa <- prune_taxa(taxa_sums(ps) > 0, ps)
-any(taxa_sums(psa) == 0)
-
-sample_data(ps)$is.neg <- sample_data(ps)$BLANK == "Control sample"
-contamdf.prev <- isContaminant(psa, method="prevalence", neg="is.neg")
-table(contamdf.prev$contaminant)
-head(which(contamdf.prev$contaminant))
-
-contamdf.prev05 <- isContaminant(psa, method="prevalence", neg="is.neg", threshold=0.5)
-table(contamdf.prev05$contaminant)
-
-ps.pa <- transform_sample_counts(psa, function(abund) 1*(abund>0))
-ps.pa.neg <- prune_samples(sample_data(ps.pa)$BLANK == "Control sample", ps.pa)
-ps.pa.pos <- prune_samples(sample_data(ps.pa)$BLANK == "True sample", ps.pa)
-
-
-# Make data.frame of prevalence in positive and negative samples
-df.pa <- data.frame(pa.pos=taxa_sums(ps.pa.pos), pa.neg=taxa_sums(ps.pa.neg),
-                    contaminant=contamdf.prev$contaminant)
-
-pdf("PrevalenceDecontam.pdf")
-ggplot(data=df.pa, aes(x=pa.neg, y=pa.pos, color=contaminant)) + geom_point() +
-  xlab("Prevalence (Negative Controls)") + ylab("Prevalence (True Samples)")
-dev.
-
-
-# Identify Contaminants - COMBINED (frequency + prevalence)
-contamdf.combi <- isContaminant(ps, method="combined", conc="DNA", neg="is.neg")
-table(contamdf.combi$contaminant)
-
-ps.noncontam <- prune_taxa(!contamdf.combi$contaminant, ps)
-ps.noncontam 
-
+ggplot(toto$data)
+#voir ggplot pour boxplot
 
 
 ##############################
@@ -309,13 +247,13 @@ library(magrittr)
 library(ggplot2)
 library(datasets)
 
-ps.E <- subset_samples(ps.noncontam, ORGANISM == "E") # full organism 
-ps.I <- subset_samples(ps.noncontam, ORGANISM == "I") # intestine
-ps.GS <- subset_samples(ps.noncontam, ORGANISM == "GS") # salivary gland
-ps.O <- subset_samples(ps.noncontam, ORGANISM == "O") # ovaries
-ps.P <- subset_samples(ps.noncontam, ORGANISM == "P") # organs pull
-ps.T <- subset_samples(ps.noncontam, LOCATION == "T") # blanks
-ps.wT <- subset_samples(ps.noncontam, LOCATION != "T") # without blanks
+ps.E <- subset_samples(ps, ORGANISM == "E") # full organism 
+ps.I <- subset_samples(ps, ORGANISM == "I") # intestine
+ps.GS <- subset_samples(ps, ORGANISM == "GS") # salivary gland
+ps.O <- subset_samples(ps, ORGANISM == "O") # ovaries
+ps.P <- subset_samples(ps, ORGANISM == "P") # organs pull
+ps.T <- subset_samples(ps, LOCATION == "T") # blanks
+ps.wT <- subset_samples(ps, LOCATION != "T") # without blanks
 
 
 
@@ -378,19 +316,9 @@ subset_samples(ps.noncontam, LOCATION == "T") %>%
                      1000, fill = "Species")
 
 
-##############################
-####### RICHNESS PLOT ########
-##############################
-subset_samples(ps.noncontam, BLANK == "Control sample") %>%
-  plot_richness(measures=c("Observed","Shannon","ACE")) -> toto
-
-ggplot(toto$data)
-#voir ggplot pour boxplot
-
 
 
 # Save the session
 install.packages("session", repos = "http://cran.us.r-project.org")
 library(session); packageVersion("session")
 save.session("dada2.Rda")
-
