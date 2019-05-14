@@ -50,15 +50,16 @@ OTU_merge_16S_dada2<-merge(taxa_16S_dada2[,c("OTUID","Taxon")],otu_16S_dada2[,c(
 
 
 # Merge vsearch/deblur
-OTU_merge_vsearch_deblur<-merge(OTU_merge_16S_vsearch[,c("Taxon","Mock_vsearch")],OTU_merge_16S_deblur[,c("Taxon","Mock_deblur")],by = c("Taxon"),all.x=T, all.y=T)
+OTU_merge_vsearch_deblur<-merge(OTU_merge_16S_vsearch[,c("OTUID","Taxon","Mock_vsearch")],OTU_merge_16S_deblur[,c("OTUID","Taxon","Mock_deblur")],by = c("OTUID","Taxon"),all.x=T, all.y=T)
 
 # Merge vsearch/deblur/dada2
-table <-merge(OTU_merge_vsearch_deblur[,c("Taxon","Mock_vsearch","Mock_deblur")],OTU_merge_16S_dada2[,c("Taxon","Mock_dada2")],by = c("Taxon"),all.x=F, all.y=F)
+table <-merge(OTU_merge_vsearch_deblur[,c("OTUID","Taxon","Mock_vsearch","Mock_deblur")],OTU_merge_16S_dada2[,c("OTUID","Taxon","Mock_dada2")],by = c("OTUID","Taxon"),all.x=T, all.y=T)
 
 
 "______________________________________________________________________________________________________________________________________________________"
 
-
+library(textshape)
+table <- column_to_rownames(table, 'OTUID')
 
 #Remplacement des NA avec des 0
 table[is.na(table)] <- 0
@@ -66,8 +67,7 @@ table[is.na(table)] <- 0
 #Suppression des lignes ayant que des comptes de 0 séquence OTU détecté
 table1 <- table[!rowSums(table[, -1] == 0) == (ncol(table)-1), ]
 
-#Suppression des taxons doublons?
-
+#Suppression des taxons doublons
 
 
 "______________________________________________________________________________________________________________________________________________________"
