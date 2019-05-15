@@ -66,7 +66,6 @@ qiime quality-filter q-score-joined \
 echo 'Deblur denoise'
 qiime deblur denoise-16S \
   --i-demultiplexed-seqs deblur_output_${seqs}/${seqs}_demux-joined-filtered.qza \
-  --p-trim-length 220 \
   --o-representative-sequences deblur_output_${seqs}/${seqs}_rep-seqs-deblur.qza \
   --o-table deblur_output_${seqs}/${seqs}_table-deblur.qza \
   --p-sample-stats \
