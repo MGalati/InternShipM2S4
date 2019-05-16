@@ -82,10 +82,30 @@ seq_merge_all[is.na(seq_merge_all)] <- 0
 #Supression des lignes où il y a que des comptes d'OTU à 0
 seq_final <- seq_merge_all[!rowSums(seq_merge_all[, -1] == 0) == (ncol(seq_merge_all)-1), ]
 
+#Merge des OTUIDs pour récupérer ensuite la taxonomie
+seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2")],seq_merge_16S_vsearch[,c("OTUID","sequence_vsearch")],by.x = c("sequence"),by.y = c("sequence_vsearch"),all.x=T, all.y=F)
+seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")],seq_merge_16S_deblur[,c("OTUID","sequence_deblur")],by.x = c("sequence"),by.y = c("sequence_deblur"),all.x=T, all.y=F)
+
+toto<-as.data.frame(c(as.character(seq_final[,5]),as.character(seq_final[,6])))
+toto<-na.omit(toto)
+seq_final<-seq_final[,-c(5,6)]
+seq_final$OTUID<-as.vector(toto)
+
+#Renommage de la colonne des séquences
+
+test=seq_final
+colnames(test)<-c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")
+colnames(seq_final)[colnames(seq_final)=="OTUID.c(as.character(seq_final[,5]),as.character(seq_final[,6]))"] <- "OTUID"
+names(seq_final)[5]<-"OTUID"
+
+
 #Export .csv file
 write.table(x = seq_final, file = "/home/galati/Téléchargements/mock_table_16S.tsv")
 
 
+library(phyloseq)
+data(GlobalPatterns)
+colnames(tax_table(GlobalPatterns))
 
 "______________________________________________________________________________________________________________________________________________________"
 
