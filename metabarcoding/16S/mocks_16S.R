@@ -1,7 +1,7 @@
 #Préparation de données et comparaison de mocks 16S
 #Mathias
 
-#########
+####Import OTU/TAX####
 
 # Importation 16S vsearch
 path = "/home/galati/Téléchargements/export_16S_vsearch/export"
@@ -21,7 +21,7 @@ setwd(path)
 otu_16S_dada2 <-  read.table(file = 'ASV-table.biom.tsv', sep = '\t', dec=".", header = TRUE)
 taxa_16S_dada2 <- read.table(file = '16S_dada2_taxonomy.tsv', sep = '\t', dec=".", header = TRUE)
 
-#########
+####Renommage####
 
 #Renommage des mocks
 colnames(otu_16S_vsearch)[colnames(otu_16S_vsearch)=="Mock"] <- "Mock_vsearch"
@@ -29,11 +29,12 @@ colnames(otu_16S_deblur)[colnames(otu_16S_deblur)=="Mock"] <- "Mock_deblur"
 colnames(otu_16S_dada2)[colnames(otu_16S_dada2)=="Mock"] <- "Mock_dada2"
 
 #Renommage des Taxon
+names(taxa_16S_deblur)[1]<-"OTUID"
 colnames(taxa_16S_vsearch)[colnames(taxa_16S_vsearch)=="Taxon"] <- "Taxon_vsearch"
 colnames(taxa_16S_deblur)[colnames(taxa_16S_deblur)=="Taxon"] <- "Taxon_deblur"
 colnames(taxa_16S_dada2)[colnames(taxa_16S_dada2)=="Taxon"] <- "Taxon_dada2"
 
-#########
+####Import SEQ####
 
 library("Biostrings")
 
@@ -61,7 +62,7 @@ OTUID = names(fastaFile)
 sequence_dada2 = paste(fastaFile)
 s_dada2 <- data.frame(OTUID, sequence_dada2)
 
-#########
+####Merge####
 
 #Merge des tables pour avoir comme colonnes finales OTU/Seq/Mocks
 seq_merge_16S_vsearch<-merge(s_vsearch[,c("OTUID","sequence_vsearch")],otu_16S_vsearch[,c("OTUID","Mock_vsearch")],by.x = c("OTUID"),all.x=F, all.y=F)
@@ -71,7 +72,7 @@ seq_merge_16S_dada2<-merge(s_dada2[,c("OTUID","sequence_dada2")],otu_16S_dada2[,
 seq_merge_vsearch_deblur<-merge(seq_merge_16S_vsearch[,c("sequence_vsearch","Mock_vsearch")],seq_merge_16S_deblur[,c("sequence_deblur","Mock_deblur")],by.x = c("sequence_vsearch"),by.y = c("sequence_deblur"),all.x=T, all.y=T)
 seq_merge_all<-merge(seq_merge_vsearch_deblur[,c("sequence_vsearch","Mock_vsearch","Mock_deblur")],seq_merge_16S_dada2[,c("sequence_dada2","Mock_dada2")],by.x = c("sequence_vsearch"),by.y = c("sequence_dada2"),all.x=T, all.y=T)
 
-#########
+####Manip####
 
 #Renommage de la colonne des séquences
 colnames(seq_merge_all)[colnames(seq_merge_all)=="sequence_vsearch"] <- "sequence"
@@ -86,23 +87,26 @@ seq_final <- seq_merge_all[!rowSums(seq_merge_all[, -1] == 0) == (ncol(seq_merge
 seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2")],seq_merge_16S_vsearch[,c("OTUID","sequence_vsearch")],by.x = c("sequence"),by.y = c("sequence_vsearch"),all.x=T, all.y=F)
 seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")],seq_merge_16S_deblur[,c("OTUID","sequence_deblur")],by.x = c("sequence"),by.y = c("sequence_deblur"),all.x=T, all.y=F)
 
+#Obtention d'une seule colonne OTUID
 toto<-as.data.frame(c(as.character(seq_final[,5]),as.character(seq_final[,6])))
 toto<-na.omit(toto)
 seq_final<-seq_final[,-c(5,6)]
 seq_final$OTUID<-as.vector(toto)
 
-#Renommage de la colonne des séquences
 
-test=seq_final
-colnames(test)<-c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")
-colnames(seq_final)[colnames(seq_final)=="OTUID.c(as.character(seq_final[,5]),as.character(seq_final[,6]))"] <- "OTUID"
-names(seq_final)[5]<-"OTUID"
-
+#Merge des OTUIDs pour récupérer ensuite la taxonomie
+test<-merge(seq_final[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],taxa_16S_vsearch[,c("OTUID","Taxon_vsearch")],by.x = c("OTUID"),all.x=F, all.y=F)
+seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")],seq_merge_16S_deblur[,c("OTUID","sequence_deblur")],by.x = c("sequence"),by.y = c("sequence_deblur"),all.x=T, all.y=F)
 
 #Export .csv file
-write.table(x = seq_final, file = "/home/galati/Téléchargements/mock_table_16S.tsv")
+write.csv(seq_final,file = "/home/galati/Téléchargements/mock_table_16S.csv")
+write.table(x = seq_final, file = "/home/galati/Téléchargements/mock_table_16S.tsv",sep="\t",dec=",")
 
 
+
+
+
+#Visualisation des données attendues
 library(phyloseq)
 data(GlobalPatterns)
 colnames(tax_table(GlobalPatterns))
@@ -162,6 +166,11 @@ merge_seq_all<-merge(merge_seq_vsearch_deblur[,c("OTUID","Mock_vsearch","Mock_de
 
 "______________________________________________________________________________________________________________________________________________________"
 
+
+#Renommage de la colonne des séquences
+test=seq_final
+colnames(test)<-c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")
+colnames(seq_final)[colnames(seq_final)=="OTUID.c(as.character(seq_final[,5]),as.character(seq_final[,6]))"] <- "OTUID"
 
 
 
