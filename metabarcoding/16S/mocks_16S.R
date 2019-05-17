@@ -84,32 +84,54 @@ seq_merge_all[is.na(seq_merge_all)] <- 0
 seq_final <- seq_merge_all[!rowSums(seq_merge_all[, -1] == 0) == (ncol(seq_merge_all)-1), ]
 
 #Merge des OTUIDs pour récupérer ensuite la taxonomie
-seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2")],seq_merge_16S_vsearch[,c("OTUID","sequence_vsearch")],by.x = c("sequence"),by.y = c("sequence_vsearch"),all.x=T, all.y=F)
-seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")],seq_merge_16S_deblur[,c("OTUID","sequence_deblur")],by.x = c("sequence"),by.y = c("sequence_deblur"),all.x=T, all.y=F)
+#seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2")],seq_merge_16S_vsearch[,c("OTUID","sequence_vsearch")],by.x = c("sequence"),by.y = c("sequence_vsearch"),all.x=T, all.y=F)
+#seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")],seq_merge_16S_deblur[,c("OTUID","sequence_deblur")],by.x = c("sequence"),by.y = c("sequence_deblur"),all.x=T, all.y=F)
 
-#Obtention d'une seule colonne OTUID
-toto<-as.data.frame(c(as.character(seq_final[,5]),as.character(seq_final[,6])))
-toto<-na.omit(toto)
-seq_final<-seq_final[,-c(5,6)]
-seq_final$OTUID<-as.vector(toto)
+tutu<-seq_merge_16S_vsearch
+tata<-seq_merge_16S_deblur
+colnames(tutu)[colnames(tutu)=="sequence_vsearch"] <- "sequence"
+colnames(tutu)[colnames(tutu)=="Mock_vsearch"] <- "Mock"
+colnames(tata)[colnames(tata)=="sequence_deblur"] <- "sequence"
+colnames(tata)[colnames(tata)=="Mock_deblur"] <- "Mock"
+test<-rbind(tutu,tata)
+final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2")],test[,c("OTUID","sequence")],by.x = c("sequence"),all.x=T, all.y=F)
+
+ruru<-taxa_16S_deblur
+roro<-taxa_16S_vsearch
+colnames(ruru)[colnames(ruru)=="Taxon_deblur"] <- "Taxon"
+colnames(roro)[colnames(roro)=="Taxon_vsearch"] <- "Taxon"
+final2<-rbind(ruru,roro)
+final2<-merge(final[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],final2[,c("OTUID","Taxon")],by.x = c("OTUID"),all.x=T, all.y=F)
 
 
-#Merge des OTUIDs pour récupérer ensuite la taxonomie
-test<-merge(seq_final[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],taxa_16S_vsearch[,c("OTUID","Taxon_vsearch")],by.x = c("OTUID"),all.x=F, all.y=F)
-seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")],seq_merge_16S_deblur[,c("OTUID","sequence_deblur")],by.x = c("sequence"),by.y = c("sequence_deblur"),all.x=T, all.y=F)
+df2 <- data.frame(newCol=paste(final2$OTUID,final2$Taxon,sep=";"))
+names(df2)[1]<-"OTUID"
+
+#Recherche pour séparer la colonnes Taxon en différentes colonnes pour ressembler à la nommenclature du tuto
+#"Kingdom" "Phylum"  "Class"   "Order"   "Family"  "Genus"   "Species"
+library(stringr)
+test <- str_split_fixed(df2$OTUID,";D_.__",8)
+test<-as.data.frame(test)
+names(test) <- c("OTUID","Kingdom","Phylum","Class","Order","Family","Genus","Species")
+colnames(test)
+
+fin<-merge(test[,c("OTUID","Kingdom","Phylum","Class","Order","Family","Genus","Species")],final2[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],by.x = c("OTUID"),all.x=T, all.y=F)
+fin<-fin[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","Kingdom","Phylum","Class","Order","Family","Genus","Species")]
+
+dudu<-data.frame(sequence_vsearch=character())
+dudu$sequence_vsearch<-str_trunc(as.character(s_vsearch$sequence_vsearch),220)
+
+fin<-rownames("OTUID")
 
 #Export .csv file
 write.csv(seq_final,file = "/home/galati/Téléchargements/mock_table_16S.csv")
-write.table(x = seq_final, file = "/home/galati/Téléchargements/mock_table_16S.tsv",sep="\t",dec=",")
-
-
-
-
+write.table(x = fin, file = "/home/galati/Téléchargements/mock_table_16S.tsv",sep="\t",dec=",",row.names = F)
 
 #Visualisation des données attendues
 library(phyloseq)
 data(GlobalPatterns)
 colnames(tax_table(GlobalPatterns))
+
 
 "______________________________________________________________________________________________________________________________________________________"
 
@@ -171,7 +193,3 @@ merge_seq_all<-merge(merge_seq_vsearch_deblur[,c("OTUID","Mock_vsearch","Mock_de
 test=seq_final
 colnames(test)<-c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")
 colnames(seq_final)[colnames(seq_final)=="OTUID.c(as.character(seq_final[,5]),as.character(seq_final[,6]))"] <- "OTUID"
-
-
-
-
