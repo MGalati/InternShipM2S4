@@ -127,7 +127,6 @@ id_mocks_taxsplit$Family<-as.character(id_mocks_taxsplit$Family)
 id_mocks_taxsplit$Genus<-as.character(id_mocks_taxsplit$Genus)
 id_mocks_taxsplit$Species<-as.character(id_mocks_taxsplit$Species)
 
-
 mock1<-c("Acinetobacter_baumannii",0,0,0,189,"Bacteria","Proteobacteria","Gammaproteobacteria","Pseudomonadales","Moraxellaceae","Acinetobacter","Acinetobacter_baumannii")
 mock2<-c("Actinomyces_odontolyticus",0,0,0,189,"Bacteria","Actinobacteria","Actinobacteria","Actinomycetales","Actinomycetaceae","Actinomyces","Actinomyces_odontolyticus")
 mock3<-c("Bacillus_cereus",0,0,0,189,"Bacteria","Firmicutes","Bacilli","Bacillales","Bacillaceae","Bacillus","Bacillus_cereus")
@@ -152,12 +151,81 @@ mock21<-c("Streptococcus_pneumoniae",0,0,0,189,"Bacteria","Firmicutes","Bacilli"
 id_mocks_taxsplit<-rbind(id_mocks_taxsplit,mock1,mock2,mock3,mock4,mock5,mock6,mock7,mock8,mock9,mock10,mock11,mock12,mock13,mock14,mock15,mock16,mock17,mock18,mock19,mock20,mock21)
 
 ####Création des tables pour phyloseq####
-otu
+#Table OTU
+otu<-otu_seq_id[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2")]
+otu$sequence<-as.character(otu$sequence)
+otu$True_OTU<-0
+tax1<-c("Acinetobacter_baumannii")
+tax2<-c("Actinomyces_odontolyticus")
+tax3<-c("Bacillus_cereus")
+tax4<-c("Bacteroides_vulgatus")
+tax5<-c("Clostridium_beijerinckii")
+tax6<-c("Deinococcus_radiodurans")
+tax7<-c("Enterococcus_faecalis")
+tax8<-c("Escherichia_coli")
+tax9<-c("Helicobacter_pylori")
+tax10<-c("Lactobacillus_gasseri")
+tax11<-c("Listeria_monocytogenes")
+tax12<-c("Neisseria_meningitidis")
+tax13<-c("Porphyromonas_gingivalis")
+tax14<-c("Propionibacterium_acnes")
+tax15<-c("Pseudomonas_aeruginosa")
+tax16<-c("Rhodobacter_sphaeroides")
+tax17<-c("Staphylococcus_aureus")
+tax18<-c("Staphylococcus_epidermidis")
+tax19<-c("Streptococcus_agalactiae")
+tax20<-c("Streptococcus_mutans")
+tax21<-c("Streptococcus_pneumoniae")
+otu<-rbind(otu,tax1,tax2,tax3,tax4,tax5,tax6,tax7,tax8,tax9,tax10,tax11,tax12,tax13,tax14,tax15,tax16,tax17,tax18,tax19,tax20,tax21)
+
+
+#Table de taxonomie
+tax<-merge(otu_seq_id[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","sequence")],id_mocks_taxsplit[,c("OTUID","Kingdom","Phylum","Class","Order","Family","Genus","Species")],by.x = c("OTUID"),all.x=T, all.y=F)
+tax<-tax[,c("sequence","Kingdom","Phylum","Class","Order","Family","Genus","Species")]
+tax$sequence<-as.character(tax$sequence)
+taxo1<-c("Acinetobacter_baumannii","Bacteria","Proteobacteria","Gammaproteobacteria","Pseudomonadales","Moraxellaceae","Acinetobacter","Acinetobacter_baumannii")
+taxo2<-c("Actinomyces_odontolyticus","Bacteria","Actinobacteria","Actinobacteria","Actinomycetales","Actinomycetaceae","Actinomyces","Actinomyces_odontolyticus")
+taxo3<-c("Bacillus_cereus","Bacteria","Firmicutes","Bacilli","Bacillales","Bacillaceae","Bacillus","Bacillus_cereus")
+taxo4<-c("Bacteroides_vulgatus","Bacteria","Bacteroidetes","Bacteroidia","Bacteroidales","Bacteroidaceae","Bacteroides","Bacteroides_vulgatus")
+taxo5<-c("Clostridium_beijerinckii","Bacteria","Firmicutes","Clostridia","Clostridiales","Clostridiaceae","Clostridium","Clostridium_beijerinckii")
+taxo6<-c("Deinococcus_radiodurans","Bacteria","Deinococcus-Thermus","Deinococci","Deinococcales","Deinococcaceae","Deinococcus","Deinococcus_radiodurans")
+taxo7<-c("Enterococcus_faecalis","Bacteria","Firmicutes","Bacilli","Lactobacillales","Enterococcaceae","Enterococcus","Enterococcus_faecalis")
+taxo8<-c("Escherichia_coli","Bacteria","Proteobacteria","Gammaproteobacteria","Enterobacteriales","Enterobacteriaceae","Escherichia","Escherichia_coli")
+taxo9<-c("Helicobacter_pylori","Bacteria","Epsilonbacteraeota","Campylobacteria","Campylobacterales","Helicobacteraceae","Helicobacter","Helicobacter_pylori")
+taxo10<-c("Lactobacillus_gasseri","Bacteria","Firmicutes","Bacilli","Lactobacillales","Lactobacillaceae","Lactobacillus","Lactobacillus_gasseri")
+taxo11<-c("Listeria_monocytogenes","Bacteria","Firmicutes","Bacilli","Bacillales","Listeriaceae","Listeria","Listeria_monocytogenes")
+taxo12<-c("Neisseria_meningitidis","Bacteria","Proteobacteria","Gammaproteobacteria","Betaproteobacteriales","Neisseriaceae","Neisseria","Neisseria_meningitidis")
+taxo13<-c("Porphyromonas_gingivalis","Bacteria","Bacteroidetes","Bacteroidia","Bacteroidales","Bacteroidaceae","Bacteroides","Porphyromonas_gingivalis")
+taxo14<-c("Propionibacterium_acnes","Bacteria","Actinobacteria","Actinobacteria","Propionibacteriales","Propionibacteriaceae","Cutibacterium","Propionibacterium_acnes")
+taxo15<-c("Pseudomonas_aeruginosa","Bacteria","Proteobacteria","Gammaproteobacteria","Pseudomonadales","Pseudomonadaceae","Pseudomonas","Pseudomonas_aeruginosa")
+taxo16<-c("Rhodobacter_sphaeroides","Bacteria","Proteobacteria","Alphaproteobacteria","Rhodobacterales","Rhodobacteraceae","Rhodobacter","Rhodobacter_sphaeroides")
+taxo17<-c("Staphylococcus_aureus","Bacteria","Firmicutes","Bacilli","Bacillales","Staphylococcaceae","Staphylococcus","Staphylococcus_aureus")
+taxo18<-c("Staphylococcus_epidermidis","Bacteria","Firmicutes","Bacilli","Bacillales","Staphylococcaceae","Staphylococcus","Staphylococcus_epidermidis")
+taxo19<-c("Streptococcus_agalactiae","Bacteria","Firmicutes","Bacilli","Lactobacillales","Streptococcaceae","Streptococcus","Streptococcus_agalactiae")
+taxo20<-c("Streptococcus_mutans","Bacteria","Firmicutes","Bacilli","Lactobacillales","Streptococcaceae","Streptococcus","Streptococcus_mutans")
+taxo21<-c("Streptococcus_pneumoniae","Bacteria","Firmicutes","Bacilli","Lactobacillales","Streptococcaceae","Streptococcus","Streptococcus_pneumoniae")
+tax<-rbind(tax,taxo1,taxo2,taxo3,taxo4,taxo5,taxo6,taxo7,taxo8,taxo9,taxo10,taxo11,taxo12,taxo13,taxo14,taxo15,taxo16,taxo17,taxo18,taxo19,taxo20,taxo21)
+
+#Résumé avec les séquences en OTUID
+res<-merge(otu_seq_id[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","sequence")],id_mocks_taxsplit[,c("OTUID","Kingdom","Phylum","Class","Order","Family","Genus","Species")],by.x = c("OTUID"),all.x=T, all.y=F)
+res$True_OTU<-0
+res<-res[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","True_OTU","Kingdom","Phylum","Class","Order","Family","Genus","Species")]
+res$sequence<-as.character(res$sequence)
+res$Order<-as.character(res$Order)
+res$Family<-as.character(res$Family)
+res$Genus<-as.character(res$Genus)
+res$Species<-as.character(res$Species)
+res<-rbind(res,mock1,mock2,mock3,mock4,mock5,mock6,mock7,mock8,mock9,mock10,mock11,mock12,mock13,mock14,mock15,mock16,mock17,mock18,mock19,mock20,mock21)
 
 
 #Export in .tsv file
-write.table(x = id_mocks_taxsplit, file = "/home/galati/Téléchargements/mock_table_16S.tsv",sep="\t",dec=",",row.names = F)
-write.table(x = seq_final, file = "/home/galati/Téléchargements/seq_final.tsv",sep="\t",dec=",",row.names = F)
+#Table récapitulative
+write.table(x = res, file = "/home/galati/Téléchargements/table_mocks_16S_tot.tsv",sep="\t",dec=",",row.names = F)
+#Table OTU
+write.table(x = otu, file = "/home/galati/Téléchargements/table_mocks_16S_otu.tsv",sep="\t",dec=",",row.names = F)
+#Table Mocks
+write.table(x = tax, file = "/home/galati/Téléchargements/table_mocks_16S_tax.tsv",sep="\t",dec=",",row.names = F)
+
 
 #Visualisation des données attendues
 library(phyloseq)
