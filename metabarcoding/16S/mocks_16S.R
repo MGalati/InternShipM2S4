@@ -117,15 +117,12 @@ colnames(test)
 
 fin<-merge(test[,c("OTUID","Kingdom","Phylum","Class","Order","Family","Genus","Species")],final2[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],by.x = c("OTUID"),all.x=T, all.y=F)
 fin<-fin[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","Kingdom","Phylum","Class","Order","Family","Genus","Species")]
-
-dudu<-data.frame(sequence_vsearch=character())
-dudu$sequence_vsearch<-str_trunc(as.character(s_vsearch$sequence_vsearch),220)
-
 fin<-rownames("OTUID")
 
-#Export .csv file
-write.csv(seq_final,file = "/home/galati/Téléchargements/mock_table_16S.csv")
+
+#Export in .tsv file
 write.table(x = fin, file = "/home/galati/Téléchargements/mock_table_16S.tsv",sep="\t",dec=",",row.names = F)
+write.table(x = seq_final, file = "/home/galati/Téléchargements/seq_final.tsv",sep="\t",dec=",",row.names = F)
 
 #Visualisation des données attendues
 library(phyloseq)
@@ -138,24 +135,6 @@ colnames(tax_table(GlobalPatterns))
 
 
 ###Anciennes manips
-
-# Merge fichiers vsearch
-OTU_merge_16S_vsearch<-merge(taxa_16S_vsearch[,c("OTUID","Taxon_vsearch")],otu_16S_vsearch[,c("OTUID","Mock_vsearch")],by.x = c("OTUID"),all.x=F, all.y=F)
-
-# Merge fichiers deblur
-OTU_merge_16S_deblur<-merge(taxa_16S_deblur[,c("OTUID","Taxon_deblur")],otu_16S_deblur[,c("OTUID","Mock_deblur")],by.x = c("OTUID"),all.x=F, all.y=F)
-
-# Merge fichiers dada2
-OTU_merge_16S_dada2<-merge(taxa_16S_dada2[,c("OTUID","Taxon_dada2")],otu_16S_dada2[,c("OTUID","Mock_dada2")],by.x = c("OTUID"),all.x=F, all.y=F)
-
-# Merge vsearch/deblur
-OTU_merge_vsearch_deblur<-merge(OTU_merge_16S_vsearch[,c("OTUID","Taxon_vsearch","Mock_vsearch")],OTU_merge_16S_deblur[,c("OTUID","Taxon_deblur","Mock_deblur")],by = c("OTUID"),all.x=T, all.y=T)
-
-# Merge vsearch/deblur/dada2
-table <-merge(OTU_merge_vsearch_deblur[,c("OTUID","Taxon_vsearch","Taxon_deblur","Mock_vsearch","Mock_deblur")],OTU_merge_16S_dada2[,c("OTUID","Taxon_dada2","Mock_dada2")],by = c("OTUID"),all.x=T, all.y=T)
-
-#Réarrangement des colonnes
-table <- table[,c("OTUID","Taxon_vsearch","Taxon_deblur","Taxon_dada2","Mock_vsearch","Mock_deblur","Mock_dada2")]
 
 #OTUID en première colonne
 #library(textshape)
@@ -171,25 +150,25 @@ table[is.na(table)] <- 0
 tableT <- table[,c(1,5:7)]
 tableT <- tableT[!rowSums(tableT == 0) == (ncol(tableT)-1), ]
 
-#Concaténation des données
-final <-merge(tableT[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],table[,c("OTUID","Taxon_vsearch","Taxon_deblur","Taxon_dada2")],by.x = c("OTUID"),all.x=T, all.y=F)
-
-
 
 "______________________________________________________________________________________________________________________________________________________"
 
 
+otu_seqs <- colnames(fin)
+otu_headers <- vector(dim(fin)[2], mode="character")
 
-#Merge des séquences aux OTUID 
-merge_seq_vsearch<-merge(final[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","Taxon_vsearch","Taxon_deblur","Taxon_dada2")],s_vsearch[,c("OTUID","sequence_vsearch")],by.x = c("OTUID"),all.x=T, all.y=F)
-merge_seq_vsearch_deblur<-merge(merge_seq_vsearch[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","Taxon_vsearch","Taxon_deblur","Taxon_dada2","sequence_vsearch")],s_deblur[,c("OTUID","sequence_deblur")],by.x = c("OTUID"),all.x=T, all.y=F)
-merge_seq_all<-merge(merge_seq_vsearch_deblur[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","Taxon_vsearch","Taxon_deblur","Taxon_dada2","sequence_vsearch","sequence_deblur")],s_dada2[,c("OTUID","sequence_dada2")],by.x = c("OTUID"),all.x=T, all.y=F)
+for (i in 1:dim(fin)[2]) {
+  otu_headers[i] <- paste(">otu", i, sep="_")
+}
 
+# making and writing out a fasta of our final otu seqs:
+otu_fasta <- c(rbind(otu_headers, otu_seqs))
+#write(otu_fasta, "otus.fa")
 
-"______________________________________________________________________________________________________________________________________________________"
+# count table:
+otu_tab <- t(fin)
+row.names(otu_tab) <- sub(">", "", otu_headers)
 
-
-#Renommage de la colonne des séquences
-test=seq_final
-colnames(test)<-c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")
-colnames(seq_final)[colnames(seq_final)=="OTUID.c(as.character(seq_final[,5]),as.character(seq_final[,6]))"] <- "OTUID"
+# tax table:
+otu_tax <- taxa
+row.names(otu_tax) <- sub(">", "", otu_headers)
