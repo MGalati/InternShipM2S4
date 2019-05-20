@@ -118,6 +118,43 @@ id_mocks_taxsplit<-merge(tax_split[,c("OTUID","Kingdom","Phylum","Class","Order"
 id_mocks_taxsplit<-id_mocks_taxsplit[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","Kingdom","Phylum","Class","Order","Family","Genus","Species")]
 
 
+####True Mock#### 
+id_mocks_taxsplit$True_OTU<-0
+id_mocks_taxsplit<-id_mocks_taxsplit[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","True_OTU","Kingdom","Phylum","Class","Order","Family","Genus","Species")]
+id_mocks_taxsplit$OTUID<-as.character(id_mocks_taxsplit$OTUID)
+id_mocks_taxsplit$Order<-as.character(id_mocks_taxsplit$Order)
+id_mocks_taxsplit$Family<-as.character(id_mocks_taxsplit$Family)
+id_mocks_taxsplit$Genus<-as.character(id_mocks_taxsplit$Genus)
+id_mocks_taxsplit$Species<-as.character(id_mocks_taxsplit$Species)
+
+
+mock1<-c("Acinetobacter_baumannii",0,0,0,189,"Bacteria","Proteobacteria","Gammaproteobacteria","Pseudomonadales","Moraxellaceae","Acinetobacter","Acinetobacter_baumannii")
+mock2<-c("Actinomyces_odontolyticus",0,0,0,189,"Bacteria","Actinobacteria","Actinobacteria","Actinomycetales","Actinomycetaceae","Actinomyces","Actinomyces_odontolyticus")
+mock3<-c("Bacillus_cereus",0,0,0,189,"Bacteria","Firmicutes","Bacilli","Bacillales","Bacillaceae","Bacillus","Bacillus_cereus")
+mock4<-c("Bacteroides_vulgatus",0,0,0,189,"Bacteria","Bacteroidetes","Bacteroidia","Bacteroidales","Bacteroidaceae","Bacteroides","Bacteroides_vulgatus")
+mock5<-c("Clostridium_beijerinckii",0,0,0,189,"Bacteria","Firmicutes","Clostridia","Clostridiales","Clostridiaceae","Clostridium","Clostridium_beijerinckii")
+mock6<-c("Deinococcus_radiodurans",0,0,0,189,"Bacteria","Deinococcus-Thermus","Deinococci","Deinococcales","Deinococcaceae","Deinococcus","Deinococcus_radiodurans")
+mock7<-c("Enterococcus_faecalis",0,0,0,189,"Bacteria","Firmicutes","Bacilli","Lactobacillales","Enterococcaceae","Enterococcus","Enterococcus_faecalis")
+mock8<-c("Escherichia_coli",0,0,0,189,"Bacteria","Proteobacteria","Gammaproteobacteria","Enterobacteriales","Enterobacteriaceae","Escherichia","Escherichia_coli")
+mock9<-c("Helicobacter_pylori",0,0,0,189,"Bacteria","Epsilonbacteraeota","Campylobacteria","Campylobacterales","Helicobacteraceae","Helicobacter","Helicobacter_pylori")
+mock10<-c("Lactobacillus_gasseri",0,0,0,189,"Bacteria","Firmicutes","Bacilli","Lactobacillales","Lactobacillaceae","Lactobacillus","Lactobacillus_gasseri")
+mock11<-c("Listeria_monocytogenes",0,0,0,189,"Bacteria","Firmicutes","Bacilli","Bacillales","Listeriaceae","Listeria","Listeria_monocytogenes")
+mock12<-c("Neisseria_meningitidis",0,0,0,189,"Bacteria","Proteobacteria","Gammaproteobacteria","Betaproteobacteriales","Neisseriaceae","Neisseria","Neisseria_meningitidis")
+mock13<-c("Porphyromonas_gingivalis",0,0,0,189,"Bacteria","Bacteroidetes","Bacteroidia","Bacteroidales","Bacteroidaceae","Bacteroides","Porphyromonas_gingivalis")
+mock14<-c("Propionibacterium_acnes",0,0,0,189,"Bacteria","Actinobacteria","Actinobacteria","Propionibacteriales","Propionibacteriaceae","Cutibacterium","Propionibacterium_acnes")
+mock15<-c("Pseudomonas_aeruginosa",0,0,0,189,"Bacteria","Proteobacteria","Gammaproteobacteria","Pseudomonadales","Pseudomonadaceae","Pseudomonas","Pseudomonas_aeruginosa")
+mock16<-c("Rhodobacter_sphaeroides",0,0,0,189,"Bacteria","Proteobacteria","Alphaproteobacteria","Rhodobacterales","Rhodobacteraceae","Rhodobacter","Rhodobacter_sphaeroides")
+mock17<-c("Staphylococcus_aureus",0,0,0,189,"Bacteria","Firmicutes","Bacilli","Bacillales","Staphylococcaceae","Staphylococcus","Staphylococcus_aureus")
+mock18<-c("Staphylococcus_epidermidis",0,0,0,189,"Bacteria","Firmicutes","Bacilli","Bacillales","Staphylococcaceae","Staphylococcus","Staphylococcus_epidermidis")
+mock19<-c("Streptococcus_agalactiae",0,0,0,189,"Bacteria","Firmicutes","Bacilli","Lactobacillales","Streptococcaceae","Streptococcus","Streptococcus_agalactiae")
+mock20<-c("Streptococcus_mutans",0,0,0,189,"Bacteria","Firmicutes","Bacilli","Lactobacillales","Streptococcaceae","Streptococcus","Streptococcus_mutans")
+mock21<-c("Streptococcus_pneumoniae",0,0,0,189,"Bacteria","Firmicutes","Bacilli","Lactobacillales","Streptococcaceae","Streptococcus","Streptococcus_pneumoniae")
+id_mocks_taxsplit<-rbind(id_mocks_taxsplit,mock1,mock2,mock3,mock4,mock5,mock6,mock7,mock8,mock9,mock10,mock11,mock12,mock13,mock14,mock15,mock16,mock17,mock18,mock19,mock20,mock21)
+
+####Création des tables pour phyloseq####
+otu
+
+
 #Export in .tsv file
 write.table(x = id_mocks_taxsplit, file = "/home/galati/Téléchargements/mock_table_16S.tsv",sep="\t",dec=",",row.names = F)
 write.table(x = seq_final, file = "/home/galati/Téléchargements/seq_final.tsv",sep="\t",dec=",",row.names = F)
