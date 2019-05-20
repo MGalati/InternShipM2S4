@@ -87,41 +87,39 @@ seq_final <- seq_merge_all[!rowSums(seq_merge_all[, -1] == 0) == (ncol(seq_merge
 #seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2")],seq_merge_16S_vsearch[,c("OTUID","sequence_vsearch")],by.x = c("sequence"),by.y = c("sequence_vsearch"),all.x=T, all.y=F)
 #seq_final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2","OTUID")],seq_merge_16S_deblur[,c("OTUID","sequence_deblur")],by.x = c("sequence"),by.y = c("sequence_deblur"),all.x=T, all.y=F)
 
-tutu<-seq_merge_16S_vsearch
-tata<-seq_merge_16S_deblur
-colnames(tutu)[colnames(tutu)=="sequence_vsearch"] <- "sequence"
-colnames(tutu)[colnames(tutu)=="Mock_vsearch"] <- "Mock"
-colnames(tata)[colnames(tata)=="sequence_deblur"] <- "sequence"
-colnames(tata)[colnames(tata)=="Mock_deblur"] <- "Mock"
-test<-rbind(tutu,tata)
-final<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2")],test[,c("OTUID","sequence")],by.x = c("sequence"),all.x=T, all.y=F)
+####Récupération des séquences pour avoir une table combinant les séquences et les identifiants Qiime2####
+colnames(seq_merge_16S_vsearch)[colnames(seq_merge_16S_vsearch)=="sequence_vsearch"] <- "sequence"
+colnames(seq_merge_16S_vsearch)[colnames(seq_merge_16S_vsearch)=="Mock_vsearch"] <- "Mock"
+colnames(seq_merge_16S_deblur)[colnames(seq_merge_16S_deblur)=="sequence_deblur"] <- "sequence"
+colnames(seq_merge_16S_deblur)[colnames(seq_merge_16S_deblur)=="Mock_deblur"] <- "Mock"
+otu_vsearch_deblur<-rbind(seq_merge_16S_vsearch,seq_merge_16S_deblur)
+otu_seq_id<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2")],otu_vsearch_deblur[,c("OTUID","sequence")],by.x = c("sequence"),all.x=T, all.y=F)
 
-ruru<-taxa_16S_deblur
-roro<-taxa_16S_vsearch
-colnames(ruru)[colnames(ruru)=="Taxon_deblur"] <- "Taxon"
-colnames(roro)[colnames(roro)=="Taxon_vsearch"] <- "Taxon"
-final2<-rbind(ruru,roro)
-final2<-merge(final[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],final2[,c("OTUID","Taxon")],by.x = c("OTUID"),all.x=T, all.y=F)
+####Obtention d'une table OTU/Mocks/Taxonomie####
+colnames(taxa_16S_deblur)[colnames(taxa_16S_deblur)=="Taxon_deblur"] <- "Taxon"
+colnames(taxa_16S_vsearch)[colnames(taxa_16S_vsearch)=="Taxon_vsearch"] <- "Taxon"
+tax_tot<-rbind(taxa_16S_deblur,taxa_16S_vsearch)
+otu_mock_tax<-merge(otu_seq_id[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],tax_tot[,c("OTUID","Taxon")],by.x = c("OTUID"),all.x=T, all.y=F)
 
+####Combiner les infos d'OTU et de Taxonomie####
+comb_tax <- data.frame(newCol=paste(otu_mock_tax$OTUID,otu_mock_tax$Taxon,sep=";"))
+names(comb_tax)[1]<-"OTUID"
 
-df2 <- data.frame(newCol=paste(final2$OTUID,final2$Taxon,sep=";"))
-names(df2)[1]<-"OTUID"
-
-#Recherche pour séparer la colonnes Taxon en différentes colonnes pour ressembler à la nommenclature du tuto
+####Recherche pour séparer la colonnes Taxon en différentes colonnes pour ressembler à la nommenclature du tuto####
 #"Kingdom" "Phylum"  "Class"   "Order"   "Family"  "Genus"   "Species"
 library(stringr)
-test <- str_split_fixed(df2$OTUID,";D_.__",8)
-test<-as.data.frame(test)
-names(test) <- c("OTUID","Kingdom","Phylum","Class","Order","Family","Genus","Species")
-colnames(test)
+tax_split <- str_split_fixed(comb_tax$OTUID,";D_.__",8)
+tax_split<-as.data.frame(tax_split)
+names(tax_split) <- c("OTUID","Kingdom","Phylum","Class","Order","Family","Genus","Species")
+#Vérification
+colnames(tax_split)
 
-fin<-merge(test[,c("OTUID","Kingdom","Phylum","Class","Order","Family","Genus","Species")],final2[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],by.x = c("OTUID"),all.x=T, all.y=F)
-fin<-fin[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","Kingdom","Phylum","Class","Order","Family","Genus","Species")]
-fin<-rownames("OTUID")
+id_mocks_taxsplit<-merge(tax_split[,c("OTUID","Kingdom","Phylum","Class","Order","Family","Genus","Species")],otu_mock_tax[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],by.x = c("OTUID"),all.x=T, all.y=F)
+id_mocks_taxsplit<-id_mocks_taxsplit[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2","Kingdom","Phylum","Class","Order","Family","Genus","Species")]
 
 
 #Export in .tsv file
-write.table(x = fin, file = "/home/galati/Téléchargements/mock_table_16S.tsv",sep="\t",dec=",",row.names = F)
+write.table(x = id_mocks_taxsplit, file = "/home/galati/Téléchargements/mock_table_16S.tsv",sep="\t",dec=",",row.names = F)
 write.table(x = seq_final, file = "/home/galati/Téléchargements/seq_final.tsv",sep="\t",dec=",",row.names = F)
 
 #Visualisation des données attendues
