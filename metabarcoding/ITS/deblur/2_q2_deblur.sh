@@ -17,7 +17,7 @@ source activate qiime2-2018.11
 IN=/homedir/galati/data/metab/ITS
 
 RUN1=PRIM
-RUN2=ITS_mock24
+RUN2=ITS_mock9
 
 #mkdir /homedir/galati/data/metab/ITS/deblur
 deblur=/homedir/galati/data/metab/ITS/deblur
