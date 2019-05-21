@@ -19,7 +19,7 @@ source activate qiime2-2018.11
 IN=/homedir/galati/data/metab/ITS
 
 RUN1=PRIM
-RUN2=ITS_mock24
+RUN2=ITS_mock9
 """
 echo 'Import'
 for seqs in ${RUN1} ${RUN2}
