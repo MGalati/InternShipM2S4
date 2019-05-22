@@ -39,7 +39,7 @@ qiime demux summarize \
   --o-visualization ${deblur}/${seqs}_reads.qzv  \
   --verbose
 done
-
+"""
 mkdir deblur_output
 
 for seqs in ${RUN1} ${RUN2}
@@ -168,7 +168,7 @@ qiime taxa barplot \
   --i-taxonomy taxonomy/ITS_taxonomy.qza \
   --o-visualization taxonomy/ITS_taxa-bar-plots.qzv \
   --m-metadata-file /homedir/galati/data/metab/ITS/metadata/metadata.tsv 
-"""
+
 echo 'export'
 qiime tools export --input-path taxonomy/ITS_taxonomy.qza --output-path taxonomy
 mv taxonomy/taxonomy.tsv taxonomy/ITS_taxonomy.tsv
