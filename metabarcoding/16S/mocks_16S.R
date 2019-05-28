@@ -98,8 +98,11 @@ otu_seq_id<-merge(seq_final[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dad
 ####Obtention d'une table OTU/Mocks/Taxonomie####
 colnames(taxa_16S_deblur)[colnames(taxa_16S_deblur)=="Taxon_deblur"] <- "Taxon"
 colnames(taxa_16S_vsearch)[colnames(taxa_16S_vsearch)=="Taxon_vsearch"] <- "Taxon"
-tax_tot<-rbind(taxa_16S_deblur,taxa_16S_vsearch)
-otu_mock_tax<-merge(otu_seq_id[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],tax_tot[,c("OTUID","Taxon")],by.x = c("OTUID"),all.x=T, all.y=F)
+colnames(taxa_16S_vsearch)[colnames(taxa_16S_vsearch)=="Feature.ID"] <- "OTUID"
+colnames(taxa_16S_dada2)[colnames(taxa_16S_dada2)=="Taxon_dada2"] <- "Taxon"
+colnames(taxa_16S_dada2)[colnames(taxa_16S_dada2)=="Feature.ID"] <- "OTUID"
+tax_tot<-rbind(taxa_16S_deblur,taxa_16S_vsearch, taxa_16S_dada2)
+otu_mock_tax<-merge(otu_seq_id[,c("OTUID","Mock_vsearch","Mock_deblur","Mock_dada2")],tax_tot[,c("OTUID","Taxon")],by.x = c("OTUID"),all.x=T, all.y=T)
 
 ####Combiner les infos d'OTU et de Taxonomie####
 comb_tax <- data.frame(newCol=paste(otu_mock_tax$OTUID,otu_mock_tax$Taxon,sep=";"))
@@ -155,27 +158,27 @@ id_mocks_taxsplit<-rbind(id_mocks_taxsplit,mock1,mock2,mock3,mock4,mock5,mock6,m
 otu<-otu_seq_id[,c("sequence","Mock_vsearch","Mock_deblur","Mock_dada2")]
 otu$sequence<-as.character(otu$sequence)
 otu$True_OTU<-0
-tax1<-c("Acinetobacter_baumannii")
-tax2<-c("Actinomyces_odontolyticus")
-tax3<-c("Bacillus_cereus")
-tax4<-c("Bacteroides_vulgatus")
-tax5<-c("Clostridium_beijerinckii")
-tax6<-c("Deinococcus_radiodurans")
-tax7<-c("Enterococcus_faecalis")
-tax8<-c("Escherichia_coli")
-tax9<-c("Helicobacter_pylori")
-tax10<-c("Lactobacillus_gasseri")
-tax11<-c("Listeria_monocytogenes")
-tax12<-c("Neisseria_meningitidis")
-tax13<-c("Porphyromonas_gingivalis")
-tax14<-c("Propionibacterium_acnes")
-tax15<-c("Pseudomonas_aeruginosa")
-tax16<-c("Rhodobacter_sphaeroides")
-tax17<-c("Staphylococcus_aureus")
-tax18<-c("Staphylococcus_epidermidis")
-tax19<-c("Streptococcus_agalactiae")
-tax20<-c("Streptococcus_mutans")
-tax21<-c("Streptococcus_pneumoniae")
+tax1<-c("Acinetobacter_baumannii",0,0,0,189)
+tax2<-c("Actinomyces_odontolyticus",0,0,0,189)
+tax3<-c("Bacillus_cereus",0,0,0,189)
+tax4<-c("Bacteroides_vulgatus",0,0,0,189)
+tax5<-c("Clostridium_beijerinckii",0,0,0,189)
+tax6<-c("Deinococcus_radiodurans",0,0,0,189)
+tax7<-c("Enterococcus_faecalis",0,0,0,189)
+tax8<-c("Escherichia_coli",0,0,0,189)
+tax9<-c("Helicobacter_pylori",0,0,0,189)
+tax10<-c("Lactobacillus_gasseri",0,0,0,189)
+tax11<-c("Listeria_monocytogenes",0,0,0,189)
+tax12<-c("Neisseria_meningitidis",0,0,0,189)
+tax13<-c("Porphyromonas_gingivalis",0,0,0,189)
+tax14<-c("Propionibacterium_acnes",0,0,0,189)
+tax15<-c("Pseudomonas_aeruginosa",0,0,0,189)
+tax16<-c("Rhodobacter_sphaeroides",0,0,0,189)
+tax17<-c("Staphylococcus_aureus",0,0,0,189)
+tax18<-c("Staphylococcus_epidermidis",0,0,0,189)
+tax19<-c("Streptococcus_agalactiae",0,0,0,189)
+tax20<-c("Streptococcus_mutans",0,0,0,189)
+tax21<-c("Streptococcus_pneumoniae",0,0,0,189)
 otu<-rbind(otu,tax1,tax2,tax3,tax4,tax5,tax6,tax7,tax8,tax9,tax10,tax11,tax12,tax13,tax14,tax15,tax16,tax17,tax18,tax19,tax20,tax21)
 
 
