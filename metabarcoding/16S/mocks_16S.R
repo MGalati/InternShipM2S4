@@ -254,9 +254,7 @@ table[is.na(table)] <- 0
 tableT <- table[,c(1,5:7)]
 tableT <- tableT[!rowSums(tableT == 0) == (ncol(tableT)-1), ]
 
-
 "______________________________________________________________________________________________________________________________________________________"
-
 
 otu_seqs <- colnames(fin)
 otu_headers <- vector(dim(fin)[2], mode="character")
