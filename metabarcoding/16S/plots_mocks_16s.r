@@ -1,5 +1,4 @@
-# Squelette du script SCHRIEKE Hans
-# Adapté par GALATI Mathias
+# GALATI Mathias aidé par Hans Schrieke
 # phyloseq 
 
 
@@ -7,15 +6,19 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 BiocManager::install("phyloseq")
 BiocManager::install("dada2")
+BiocManager::install("DESeq2")
 
 require(phyloseq); packageVersion("phyloseq")
-require(tidyverse); packageVersion("phyloseq")
+require(tidyverse); packageVersion("tidyverse")
 require(reshape2); packageVersion("reshape2")
 require(gridExtra); packageVersion("gridExtra")
 require(scales); packageVersion("scales")
 require(parallel); packageVersion("parallel")
 require(permute); packageVersion("permute")
 require(lattice); packageVersion("lattice")
+require("plyr"); packageVersion("plyr")
+require("DESeq2"); packageVersion("DESeq2")
+
 
 #Note : de otu ITS à enlever et de metadata blank_8, T-16S-pomme, T-16S-pomme2, T-ITS-mangue, T-ITS-mangue2
 #Vérifier à avoir biuen des _
@@ -24,7 +27,7 @@ require(lattice); packageVersion("lattice")
 ########### DATA ############
 ##############################
 
-path = "/home/galati/Téléchargements/export_16S_vsearch/export"
+path = "/home/galati/Téléchargements/stats/export_16S_vsearch/export"
 setwd(path)
 
 
@@ -46,8 +49,8 @@ require(ggplot2); packageVersion("ggplot2")
 
 theme_set(theme_bw()) #set ggplot2 graphic theme 
 
-otu <- as.numeric()
 otu <- as.matrix(otu)
+otu <-otu+1
 taxa <- as.matrix(taxa)
 OTU = otu_table(otu, taxa_are_rows =TRUE)
 
@@ -61,69 +64,16 @@ taxa_names(TAX)
 #Objet phyloseq
 ps <- phyloseq(OTU, TAX)
 
-#Sous-échantillonnage
-ps_sub <- rarefy_even_depth(ps, rngseed=TRUE)
-
 ##############################
 ######## PHYLOSEQ MANIP#######
 ##############################
 
-# ps est un objet phyloseq 
-ps
-ps_sub
-
-# Affiche les premières lignes de ps
-head(otu_table(ps))
-
-# Il est possible de formater autrement avec le package tidy
-ps %>% 
-  otu_table() %>%
-  head()
-
-# Affiche la profondeur de séquencage de ps
-ps %>% 
-  otu_table() %>%
-  colSums()
-
-# Somme les comptages d'OTUs de chaque colonne
-ps %>% sample_sums
-
-
-# Crée un graphique de la profondeur de séquencage 
-ps %>% 
-  otu_table() %>%
-  colSums() %>%
-  sort() %>% 
-  barplot(las=2)
-
-# Combien de reads représentent les 10 premiers OTUs
-sort(rowSums(otu_table(ps)), decreasing = T)[1:10]
-
-# Affiche la taxonomie des premières lignes
-ps %>% 
-  tax_table() %>%
-  head()
-
-
-# Les métadonnées sont aussi stockées dans ps
-#sample_data(ps)$env_material
-
-
-# Phyloseq possède quelques focntions
-rank_names(ps) # Niveaux taxonomique
-nsamples(ps) # Nombre d'échantillons
-ntaxa(ps) # Nombre d'OTUs
-#sample_variables(ps) # Métadonnées
-
+#OK# Profondeur de séquencage
 # Dessine le graphique de la distribution de séquences par OTU et par échantillon
 # Crée un dataframe avec nreads : trie le nombre de reads par OTU
 readsumsdf <- data.frame(nreads = sort(taxa_sums(ps), TRUE),
                          sorted = 1:ntaxa(ps), 
                          type = "OTU")
-
-# Première ligne du dataframe
-readsumsdf %>% head()
-
 
 # Dessine le graphique avec ggplot
 ggplot(readsumsdf, 
@@ -139,17 +89,24 @@ readsumsdf2 <- data.frame(nreads = sort(sample_sums(ps), TRUE),
 # Rassemblement des deux dataframe
 readsumsdf3 <- rbind(readsumsdf,readsumsdf2)
 
-# Premières lignes
-readsumsdf3 %>% head()
-
-# Dernières lignes
-readsumsdf3 %>% tail()
-
 # Graph avec ggplot les données couvrent les données Type (OTU et Samples )
 p  <-  ggplot(readsumsdf3, 
               aes(x = sorted, y = nreads)) + 
   geom_bar(stat = "identity")
 p + ggtitle("Total number of reads before Preprocessing") + scale_y_log10() + facet_wrap(~type, 1, scales = "free")
+
+#BOF# Alpha div
+plot_richness(ps)
+
+#BOF# Beta div
+GP.ord <- ordinate(ps, "NMDS", "bray")
+p1 = plot_ordination(ps, GP.ord, type="taxa", color="Phylum", title="taxa")
+print(p1)
+p1 + facet_wrap(~Phylum, 3)
+#NO# Plot bar / Taxonomy
+ps.csp = subset_taxa(ps, Kingdom == "Bacteria")
+plot_bar(ps.csp, fill="Species")
+
 
 # Let's explore the rarefaction curves i.e., OTU richness vs sequencing depth
 ps %>%
@@ -160,14 +117,14 @@ ps %>%
 # We can do something nicer with ggplot
 source("https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/load-extra-functions.R")
 
+ps<-as.data.frame(ps)
 p <- ggrare(ps,
             step = 500,
-            color = "env_material",
+            color = NULL,
             plot = T,
             parallel = T,
             se = F)
 p <- p + 
-  facet_wrap(~ env_material ) + 
   geom_vline(xintercept = min(sample_sums(ps)), 
              color = "gray60")
 plot(p)
@@ -177,7 +134,7 @@ plot(p)
 tax_table(ps)[,c("Kingdom")] %>% unique()
 
 # Remove untargeted OTU (we consider Unclassified OTU at the Kingdom level as noise) using subset_taxa
-data <- subset_taxa(data, 
+data <- subset_taxa(ps, 
                     Kingdom != "Unclassified" &
                       Order !="Chloroplast" &
                       Family != "Mitochondria")
@@ -202,9 +159,9 @@ write.csv(cbind(data.frame(otu_table(data_rare)),
           file="filtered_otu_table.csv")
 
 # We can now explore the alpha-dviersity on the filtered and rarefied data
-p <- plot_richness(data_rare, 
+p <- plot_richness(ps, 
                    x="sample", 
-                   color="env_material", 
+                   color=NULL, 
                    measures=c("Observed","Shannon","ACE"), 
                    nrow = 1)
 print(p)
@@ -408,4 +365,3 @@ subset_samples(ps.noncontam, LOCATION == "T") %>%
 install.packages("session", repos = "http://cran.us.r-project.org")
 library(session); packageVersion("session")
 save.session("metab.Rda")
-
