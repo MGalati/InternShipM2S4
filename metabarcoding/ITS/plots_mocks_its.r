@@ -1,4 +1,4 @@
-# GALATI Mathias avec l'aide de Hans Schriek
+# GALATI Mathias avec l'aide de Hans Schrieke
 # phyloseq 
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
