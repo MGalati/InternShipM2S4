@@ -25,6 +25,7 @@ tree <- read_tree("rooted-tree.nwk")
 
 #A lancer 2 fois car il y a 2 points
 colnames(otu) <- sub("\\.","_", colnames(otu))
+colnames(otu) <- sub("\\.","_", colnames(otu))
 
 ##############################
 ### TRAITEMENT TABLE TAXO ###
@@ -70,17 +71,21 @@ taxa_names(TAX)
 
 sample_names(OTU)
 sample_names(SAM)
+sample_data(SAM)
 
 #Objet phyloseq
-ps <- phyloseq(OTU, TAX, SAM, tree)
+ps <- phyloseq(OTU, TAX, SAM ,tree)
+ps <- subset_samples(ps, Model !="Blank")
+
+
 
 ####Divers tests####
-plot_richness(ps, measures=c("Observed","Chao1","Shannon"), color="Tree_type")
+plot_richness(ps, measures=c("Observed","Chao1","Shannon"), color="Model")
 
 ordu = ordinate(ps, "PCoA", "unifrac", weighted=TRUE)
-plot_ordination(ps, ordu, color="Model", shape="Tree_type")
+plot_ordination(ps, ordu, color="Model", shape="Model")
 
-p4 = plot_ordination(ps, ordu, type="split", color="Model", shape="Tree_type", label="SampleType", title="split") 
+p4 = plot_ordination(ps, ordu, type="split", color="Model", shape="Model", label="SampleType", title="split") 
 p4
 
 
@@ -94,12 +99,12 @@ source("https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended
 
 p <- ggrare(ps,
             step = 10,
-            color = "Tree_type",
+            color = "Model",
             plot = T,
             parallel = T,
             se = F)
 p <- p + 
-  facet_wrap(~ Tree_type ) + 
+  facet_wrap(~ Model ) + 
   geom_vline(xintercept = min(sample_sums(ps)), 
              color = "gray60")
 plot(p)
@@ -126,7 +131,7 @@ data_rare <- rarefy_even_depth(ps,
                                rngseed = 63)
 
 # Rarefaction curves on filtered data
-p <- ggrare(data_rare, step = 50, color = "Tree_type", plot = T, parallel = T, se = F)
+p <- ggrare(data_rare, step = 50, color = "Model", plot = T, parallel = T, se = F)
 p 
 
 # One can export the filtered OTU table
@@ -139,7 +144,7 @@ write.csv(cbind(data.frame(otu_table(data_rare)),
 # We can now explore the alpha-dviersity on the filtered and rarefied data
 p <- plot_richness(data_rare, 
                    x="sample", 
-                   color="Tree_type", 
+                   color="Model", 
                    measures=c("Observed","Shannon","ACE"), 
                    nrow = 1)
 print(p)
@@ -149,28 +154,28 @@ print(p)
 p$data %>% head()
 
 # boxplot using ggplot 
-ggplot(p$data,aes(Tree_type,value,colour=Tree_type)) +
-  facet_grid(variable ~ Tree_type, drop=T,scale="free",space="fixed") +
+ggplot(p$data,aes(Model,value,colour=Model)) +
+  facet_grid(variable ~ Model, drop=T,scale="free",space="fixed") +
   geom_boxplot(outlier.colour = NA,alpha=1)
 
 # More Complex
-ggplot(p$data,aes(Tree_type,value,colour=Tree_type,shape=Tree_type)) +
-  facet_grid(variable ~ Tree_type, drop=T,scale="free",space="fixed") +
+ggplot(p$data,aes(Model,value,colour=Model,shape=Model)) +
+  facet_grid(variable ~ Model, drop=T,scale="free",space="fixed") +
   geom_boxplot(outlier.colour = NA,alpha=0.8, 
                position = position_dodge(width=0.9)) + 
   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
   ylab("Diversity index")  + xlab(NULL) + theme_bw()
 
 # Export the alpha div values into a dataframe in short format
-rich.plus <- dcast(p$data,  samples + Tree_type ~ variable)
+rich.plus <- dcast(p$data,  samples + Model ~ variable)
 write.csv(rich.plus, file="alpha_div.csv")
 
 #### Tests ####
 # Alpha-div Stats using TukeyHSD on ANOVA
-TukeyHSD_Observed <- TukeyHSD(aov(Observed ~ Tree_type, data =  rich.plus))
-TukeyHSD_Observed_df <- data.frame(TukeyHSD_Observed$Tree_type)
+TukeyHSD_Observed <- TukeyHSD(aov(Observed ~ Model, data =  rich.plus))
+TukeyHSD_Observed_df <- data.frame(TukeyHSD_Observed$Model)
 TukeyHSD_Observed_df$measure = "Observed"
-TukeyHSD_Observed_df$shapiro_test_pval = (shapiro.test(residuals(aov(Observed ~ Tree_type, data =  rich.plus))))$p.value
+TukeyHSD_Observed_df$shapiro_test_pval = (shapiro.test(residuals(aov(Observed ~ Model, data =  rich.plus))))$p.value
 TukeyHSD_Observed_df
 
 ##### Beta diversity ####
@@ -192,8 +197,8 @@ ord$vectors
 
 plot_ordination(data_rare, 
                 ord,
-                color = "Tree_type", 
-                shape="Tree_type", 
+                color = "Model", 
+                shape= "Model", 
                 title = "PCoA sqrt Bray curtis", 
                 label= "SampleID" ) + 
   geom_point(aes(size=rich.plus$Observed)) +
@@ -201,23 +206,23 @@ plot_ordination(data_rare,
 
 
 # Let's see if the observed pattern is significant using PERMANOVA i.e., adonis function from vegan
-adonis(dist ~ get_variable(data_rare, "Tree_type"), permutations = 1000)$aov.tab
+adonis(dist ~ get_variable(data_rare, "Model"), permutations = 1000)$aov.tab
 
 # Let's see if there are difference in dispersion (i.e., variance)
 boxplot(betadisper(dist, 
-                   get_variable(data_rare, "Tree_type")),las=2, 
+                   get_variable(data_rare, "Model")),las=2, 
         main=paste0("Multivariate Dispersion Test Bray-Curtis "," pvalue = ", 
-                    permutest(betadisper(dist, get_variable(data_rare, "Tree_type")))$tab$`Pr(>F)`[1]))
+                    permutest(betadisper(dist, get_variable(data_rare, "Model")))$tab$`Pr(>F)`[1]))
 
 # ANOSIM test can also test for differences among group 
-plot(anosim(dist, get_variable(data_rare, "Tree_type"))
+plot(anosim(dist, get_variable(data_rare, "Model"))
      ,main="ANOSIM Bray-Curtis "
      ,las=2)
 
 # Now, we would like to plot the distribution of phylum transformed in %
 data_rare %>% transform_sample_counts(function(x) x/sum(x)) %>%
   plot_bar(fill="Phylum") +
-  facet_wrap(~ Tree_type, scales = "free_x", nrow = 4) +
+  facet_wrap(~ Model, scales = "free_x", nrow = 2) +
   ggtitle("Bar plot colored by Phylum ") +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -228,10 +233,11 @@ p <- plot_composition(data_rare,
                       taxaRank2 = "Phylum", 
                       numberOfTaxa = 20, 
                       fill= "Phylum") +
-  facet_wrap(~Tree_type, scales = "free_x", nrow = 4) + 
+  facet_wrap(~Model, scales = "free_x", nrow = 2) + 
   theme(plot.title = element_text(hjust = 0.5)) 
 
 plot(p)
+
 
 p <- plot_composition(data_rare,
                       taxaRank1 = "Kingdom",
@@ -239,7 +245,7 @@ p <- plot_composition(data_rare,
                       taxaRank2 = "Class", 
                       numberOfTaxa = 20, 
                       fill= "Class") +
-  facet_wrap(~Tree_type, scales = "free_x", nrow = 4) + 
+  facet_wrap(~Model, scales = "free_x", nrow = 2) + 
   theme(plot.title = element_text(hjust = 0.5)) 
 
 plot(p)
