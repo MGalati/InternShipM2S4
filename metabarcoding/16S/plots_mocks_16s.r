@@ -98,9 +98,10 @@ p + ggtitle("Total number of reads before Preprocessing") + scale_y_log10() + fa
 
 #OK# Alpha div
 #Il faut appeler OTU "Formal class otu_table"
+otu <-  read.table(file = 'table_mocks_16S_otu.tsv', sep = '\t', dec=".", header = TRUE, row.names = 1)
+OTU = otu_table(otu, taxa_are_rows =TRUE)
 estimate_richness(OTU, split = TRUE, measures = NULL)
 plot_richness(OTU,measures = c("Observed", "Chao1", "ACE", "Shannon"))
-
 
 ##############################
 ######## NORMALIZATION########
@@ -116,13 +117,22 @@ for (i in 1:ncol(count_tab_ps)){
   
 }
 
-
 sum(otu_percent_ps)
-
+otu_percent_ps <- otu_percent_ps[,-1]
 
 OTU = otu_table(otu_percent_ps, taxa_are_rows =TRUE)
 ps <- phyloseq(OTU, TAX)
 
 #YES# Plot bar / Taxonomy
+require(ggplot2); packageVersion("ggplot2")
 ps.csp = subset_taxa(ps, Kingdom == "Bacteria")
-plot_bar(ps, fill="Species")
+plot_bar(ps.csp, fill="Species")
+
+p = plot_bar(ps.csp, "Sample", fill="Species")
+p + geom_bar(aes(color=Species, fill=Species), stat="identity", position="stack")
+
+p = plot_bar(ps.csp, "Sample", fill="Genus")
+p + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack")
+
+p = plot_bar(ps.csp, "Sample", fill="Phylum")
+p + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack")
