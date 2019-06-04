@@ -74,19 +74,8 @@ sample_names(SAM)
 #Objet phyloseq
 ps <- phyloseq(OTU, TAX, SAM, tree)
 
-
-plot_richness(ps, x="Tree_type", measures=c("Observed","Chao1","Shannon"), color="Model")
-
-ps.csp = subset_taxa(ps, Kingdom == "Bacteria")
-plot_bar(ps, "Tree_type", fill="Phylum",facet_grid=~Sample)
-
-gpt <- subset_taxa(ps, Kingdom=="Bacteria")
-gpt <- prune_taxa(names(sort(taxa_sums(ps),TRUE)[1:3]), ps)
-plot_heatmap(ps, sample.label="SampleType")
-
-plot_ordination(ps, ordinate(ps, method ="PCoS", distance = "euclidean"), color = "species") +
-  geom_point(size = 3) +
-  ggtitle("PCoA (log normalization)")
+####Divers tests####
+plot_richness(ps, measures=c("Observed","Chao1","Shannon"), color="Tree_type")
 
 ordu = ordinate(ps, "PCoA", "unifrac", weighted=TRUE)
 plot_ordination(ps, ordu, color="Model", shape="Tree_type")
@@ -98,99 +87,8 @@ p4
 ##############################
 ######## PHYLOSEQ MANIP#######
 ##############################
-# ps est un objet phyloseq 
-ps
 
-# Affiche les premières lignes de ps
-head(otu_table(ps))
-
-# Il est possible de formater autrement avec le package tidy
-ps %>% 
-  otu_table() %>%
-  head()
-
-# Affiche la profondeur de séquencage de ps
-ps %>% 
-  otu_table() %>%
-  colSums()
-
-# Somme les comptages d'OTUs de chaque colonne
-ps %>% sample_sums
-
-
-# Crée un graphique de la profondeur de séquencage 
-ps %>% 
-  otu_table() %>%
-  colSums() %>%
-  sort() %>% 
-  barplot(las=2)
-
-# Combien de reads représentent les 10 premiers OTUs
-sort(rowSums(otu_table(ps)), decreasing = T)[1:10]
-
-# Affiche la taxonomie des premières lignes
-ps %>% 
-  tax_table() %>%
-  head()
-
-
-# Les métadonnées sont aussi stockées dans ps
-sample_data(ps)$Tree_type
-
-
-# Phyloseq possède quelques focntions
-rank_names(ps) # Niveaux taxonomique
-nsamples(ps) # Nombre d'échantillons
-ntaxa(ps) # Nombre d'OTUs
-sample_variables(ps) # Métadonnées
-
-# Dessine le graphique de la distribution de séquences par OTU et par échantillon
-# Crée un dataframe avec nreads : trie le nombre de reads par OTU
-readsumsdf <- data.frame(nreads = sort(taxa_sums(ps), TRUE),
-                         sorted = 1:ntaxa(ps), 
-                         type = "OTU")
-
-# Première ligne du dataframe
-readsumsdf %>% head()
-
-
-# Dessine le graphique avec ggplot
-ggplot(readsumsdf, 
-       aes(x = sorted, y = nreads)) + 
-  geom_bar(stat = "identity") + 
-  scale_y_log10() 
-
-# Crée un autre dataframe avec la profondeur de séquencage par échantillon avec sample sample_sums()
-readsumsdf2 <- data.frame(nreads = sort(sample_sums(ps), TRUE), 
-                          sorted = 1:nsamples(ps), 
-                          type = "Samples")
-
-# Rassemblement des deux dataframe
-readsumsdf3 <- rbind(readsumsdf,readsumsdf2)
-
-# Premières lignes
-readsumsdf3 %>% head()
-
-# Dernières lignes
-readsumsdf3 %>% tail()
-
-# Graph avec ggplot les données couvrent les données Type (OTU et Samples )
-p  <-  ggplot(readsumsdf3, 
-              aes(x = sorted, y = nreads)) + 
-  geom_bar(stat = "identity")
-p + ggtitle("Total number of reads before Preprocessing") + scale_y_log10() + facet_wrap(~type, 1, scales = "free")
-
-# Let's explore the rarefaction curves i.e., OTU richness vs sequencing depth
-#ps %>%
-#  otu_table() %>%
-#  t() %>%
-#  vegan::rarecurve()
-
-ps %>% 
-  tax_table() %>%
-  head()
-
-
+##### Rarefaction curves ####
 # We can do something nicer with ggplot
 source("https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/load-extra-functions.R")
 
@@ -237,6 +135,7 @@ write.csv(cbind(data.frame(otu_table(data_rare)),
           file="filtered_otu_table.csv")
 
 
+##### Alpha diversity ####
 # We can now explore the alpha-dviersity on the filtered and rarefied data
 p <- plot_richness(data_rare, 
                    x="sample", 
@@ -245,12 +144,9 @@ p <- plot_richness(data_rare,
                    nrow = 1)
 print(p)
 
-
 # That plot could be nicer
-
 # data to plot are stored in p$data
 p$data %>% head()
-
 
 # boxplot using ggplot 
 ggplot(p$data,aes(Tree_type,value,colour=Tree_type)) +
@@ -269,7 +165,7 @@ ggplot(p$data,aes(Tree_type,value,colour=Tree_type,shape=Tree_type)) +
 rich.plus <- dcast(p$data,  samples + Tree_type ~ variable)
 write.csv(rich.plus, file="alpha_div.csv")
 
-
+#### Tests ####
 # Alpha-div Stats using TukeyHSD on ANOVA
 TukeyHSD_Observed <- TukeyHSD(aov(Observed ~ Tree_type, data =  rich.plus))
 TukeyHSD_Observed_df <- data.frame(TukeyHSD_Observed$Tree_type)
@@ -277,8 +173,7 @@ TukeyHSD_Observed_df$measure = "Observed"
 TukeyHSD_Observed_df$shapiro_test_pval = (shapiro.test(residuals(aov(Observed ~ Tree_type, data =  rich.plus))))$p.value
 TukeyHSD_Observed_df
 
-
-# beta-diversity
+##### Beta diversity ####
 # Compute dissimilarity
 data_rare %>% transform_sample_counts(function(x) x/sum(x)) %>%
   otu_table() %>%
@@ -333,6 +228,17 @@ p <- plot_composition(data_rare,
                       taxaRank2 = "Phylum", 
                       numberOfTaxa = 20, 
                       fill= "Phylum") +
+  facet_wrap(~Tree_type, scales = "free_x", nrow = 4) + 
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+plot(p)
+
+p <- plot_composition(data_rare,
+                      taxaRank1 = "Kingdom",
+                      taxaSet1 ="Bacteria",
+                      taxaRank2 = "Class", 
+                      numberOfTaxa = 20, 
+                      fill= "Class") +
   facet_wrap(~Tree_type, scales = "free_x", nrow = 4) + 
   theme(plot.title = element_text(hjust = 0.5)) 
 
