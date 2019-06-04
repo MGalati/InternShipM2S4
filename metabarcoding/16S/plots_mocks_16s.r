@@ -64,6 +64,7 @@ taxa_names(TAX)
 #Objet phyloseq
 ps <- phyloseq(OTU, TAX)
 
+
 ##############################
 ######## PHYLOSEQ MANIP#######
 ##############################
@@ -95,159 +96,33 @@ p  <-  ggplot(readsumsdf3,
   geom_bar(stat = "identity")
 p + ggtitle("Total number of reads before Preprocessing") + scale_y_log10() + facet_wrap(~type, 1, scales = "free")
 
-#BOF# Alpha div
-plot_richness(ps)
+#OK# Alpha div
+#Il faut appeler OTU "Formal class otu_table"
+estimate_richness(OTU, split = TRUE, measures = NULL)
+plot_richness(OTU,measures = c("Observed", "Chao1", "ACE", "Shannon"))
 
-#BOF# Beta div
-GP.ord <- ordinate(ps, "NMDS", "bray")
-p1 = plot_ordination(ps, GP.ord, type="taxa", color="Phylum", title="taxa")
-print(p1)
-p1 + facet_wrap(~Phylum, 3)
-#NO# Plot bar / Taxonomy
+
+##############################
+######## NORMALIZATION########
+##############################
+
+# %
+class(OTU)
+count_tab_ps <- as.data.frame(OTU)
+
+otu_percent_ps <- cbind(0)
+for (i in 1:ncol(count_tab_ps)){
+  otu_percent_ps <- cbind(otu_percent_ps,(count_tab_ps[i]/colSums(count_tab_ps[i]))*100)
+  
+}
+
+
+sum(otu_percent_ps)
+
+
+OTU = otu_table(otu_percent_ps, taxa_are_rows =TRUE)
+ps <- phyloseq(OTU, TAX)
+
+#YES# Plot bar / Taxonomy
 ps.csp = subset_taxa(ps, Kingdom == "Bacteria")
-plot_bar(ps.csp, fill="Species")
-
-
-# Let's explore the rarefaction curves i.e., OTU richness vs sequencing depth
-ps %>%
-  otu_table() %>%
-  t() %>%
-  vegan::rarecurve()
-
-# We can do something nicer with ggplot
-source("https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/load-extra-functions.R")
-
-ps<-as.data.frame(ps)
-p <- ggrare(ps,
-            step = 500,
-            color = NULL,
-            plot = T,
-            parallel = T,
-            se = F)
-p <- p + 
-  geom_vline(xintercept = min(sample_sums(ps)), 
-             color = "gray60")
-plot(p)
-
-# La table d'OTU va être filtrée
-# Exploration de la taxonomie au niveau du Kingdom
-tax_table(ps)[,c("Kingdom")] %>% unique()
-
-# Remove untargeted OTU (we consider Unclassified OTU at the Kingdom level as noise) using subset_taxa
-data <- subset_taxa(ps, 
-                    Kingdom != "Unclassified" &
-                      Order !="Chloroplast" &
-                      Family != "Mitochondria")
-
-# Remove low occurence / abundance OTU i.e.,  more than 10 sequences in total and appearing in more than 1 sample
-data <-  filter_taxa(data, 
-                     function(x) sum(x >= 10) > (1), 
-                     prune =  TRUE) 
-
-# Rarefy to en even sequencing depth (i.e., min(colSums(otu_table(data)))
-data_rare <- rarefy_even_depth(data, 
-                               sample.size = min(colSums(otu_table(data))), 
-                               rngseed = 63)
-
-# Rarefaction curves on filtered data
-p <- ggrare(data_rare, step = 50, color = "env_material", plot = T, parallel = T, se = F)
-p 
-
-# One can export the filtered OTU table
-write.csv(cbind(data.frame(otu_table(data_rare)),
-                tax_table(data_rare)), 
-          file="filtered_otu_table.csv")
-
-# We can now explore the alpha-dviersity on the filtered and rarefied data
-p <- plot_richness(ps, 
-                   x="sample", 
-                   color=NULL, 
-                   measures=c("Observed","Shannon","ACE"), 
-                   nrow = 1)
-print(p)
-
-# That plot could be nicer
-# data to plot are stored in p$data
-p$data %>% head()
-
-# boxplot using ggplot 
-ggplot(p$data,aes(env_material,value,colour=env_material)) +
-  facet_grid(variable ~ env_material, drop=T,scale="free",space="fixed") +
-  geom_boxplot(outlier.colour = NA,alpha=1)
-
-# More Complex
-ggplot(p$data,aes(env_material,value,colour=env_material,shape=env_material)) +
-  facet_grid(variable ~ env_material, drop=T,scale="free",space="fixed") +
-  geom_boxplot(outlier.colour = NA,alpha=0.8, 
-               position = position_dodge(width=0.9)) + 
-  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  ylab("Diversity index")  + xlab(NULL) + theme_bw()
-
-# Export the alpha div values into a dataframe in short format
-rich.plus <- dcast(p$data,  samples + env_material ~ variable)
-write.csv(rich.plus, file="alpha_div.csv")
-
-# Alpha-div Stats using TukeyHSD on ANOVA
-TukeyHSD_Observed <- TukeyHSD(aov(Observed ~ env_material, data =  rich.plus))
-TukeyHSD_Observed_df <- data.frame(TukeyHSD_Observed$env_material)
-TukeyHSD_Observed_df$measure = "Observed"
-TukeyHSD_Observed_df$shapiro_test_pval = (shapiro.test(residuals(aov(Observed ~ env_material, data =  rich.plus))))$p.value
-TukeyHSD_Observed_df
-
-# beta-diversity
-
-# Compute dissimilarity
-data_rare %>% transform_sample_counts(function(x) x/sum(x)) %>%
-  otu_table() %>%
-  t() %>%
-  sqrt() %>%
-  as.data.frame() %>%
-  vegdist(binary=F, method = "bray") -> dist
-
-# run PCoA ordination on the generated distance
-ord <- ordinate(data_rare,"PCoA",dist)
-
-# samples coordinate on the PCoA vecotrs are stored in but plot_ordination can make use of ord object easily
-ord$vectors
-
-plot_ordination(data_rare, 
-                ord,
-                color = "env_material", 
-                shape="env_material", 
-                title = "PCoA sqrt Bray curtis", 
-                label= "SampleID" ) + 
-  geom_point(aes(size=rich.plus$Observed)) +
-  theme_bw()
-
-# Let's see if the observed pattern is significant using PERMANOVA i.e., adonis function from vegan
-adonis(dist ~ get_variable(data_rare, "env_material"), permutations = 1000)$aov.tab
-
-# Let's see if there are difference in dispersion (i.e., variance)
-boxplot(betadisper(dist, 
-                   get_variable(data_rare, "env_material")),las=2, 
-        main=paste0("Multivariate Dispersion Test Bray-Curtis "," pvalue = ", 
-                    permutest(betadisper(dist, get_variable(data_rare, "env_material")))$tab$`Pr(>F)`[1]))
-
-# ANOSIM test can also test for differences among group 
-plot(anosim(dist, get_variable(data_rare, "env_material"))
-     ,main="ANOSIM Bray-Curtis "
-     ,las=2)
-
-# Now, we would like to plot the distribution of phylum transformed in %
-data_rare %>% transform_sample_counts(function(x) x/sum(x)) %>%
-  plot_bar(fill="Phylum") +
-  facet_wrap(~ env_material, scales = "free_x", nrow = 1) +
-  ggtitle("Bar plot colored by Phylum ") +
-  theme(plot.title = element_text(hjust = 0.5))
-
-# We can generate a nicer plot using plot_composition function
-p <- plot_composition(data_rare,
-                      taxaRank1 = "Kingdom",
-                      taxaSet1 ="Bacteria",
-                      taxaRank2 = "Phylum", 
-                      numberOfTaxa = 20, 
-                      fill= "Phylum") +
-  facet_wrap(~env_material, scales = "free_x", nrow = 1) + 
-  theme(plot.title = element_text(hjust = 0.5)) 
-
-plot(p)
+plot_bar(ps, fill="Species")
