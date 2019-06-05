@@ -16,8 +16,8 @@ source activate qiime2-2018.11
 
 IN=/homedir/galati/data/metab/ITS
 
-RUN1=SUB
-RUN2=ITS_mock9
+RUN1=PRIM
+#RUN2=ITS_mock9
 """
 echo 'Import sequences'
 for seqs in ${RUN1} ${RUN2}
@@ -37,8 +37,9 @@ qiime demux summarize \
   --verbose
 done
 """
+
 echo 'dada2'
-for seqs in ${RUN1} ${RUN2}
+for seqs in ${RUN1} #${RUN2}
 do
 
 truncF=0 #Il faut que je vois à combien trunc
@@ -86,18 +87,18 @@ mkdir dada2_output
 echo 'ASV table'
 qiime feature-table merge \
   --i-tables dada2_output_${RUN1}/${RUN1}_table.qza \
-  --i-tables dada2_output_${RUN2}/${RUN2}_table.qza \
+  #--i-tables dada2_output_${RUN2}/${RUN2}_table.qza \
   --o-merged-table dada2_output/table.qza
 
 echo 'Representative sequences'
 qiime feature-table merge-seqs \
   --i-data dada2_output_${RUN1}/${RUN1}_representative_sequences.qza \
-  --i-data dada2_output_${RUN2}/${RUN2}_representative_sequences.qza \
+  #--i-data dada2_output_${RUN2}/${RUN2}_representative_sequences.qza \
   --o-merged-data dada2_output/representative_sequences.qza
 
 echo 'Denoising Stats'
 
-cat dada2_output_${RUN1}/${RUN1}/stats.tsv dada2_output_${RUN2}/${RUN2}/stats.tsv \
+cat dada2_output_${RUN1}/${RUN1}/stats.tsv #dada2_output_${RUN2}/${RUN2}/stats.tsv \
     > dada2_output/stats.tsv
 
 #cannot
