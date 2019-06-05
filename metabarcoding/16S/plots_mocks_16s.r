@@ -125,7 +125,10 @@ ps <- phyloseq(OTU, TAX)
 
 #YES# Plot bar / Taxonomy
 require(ggplot2); packageVersion("ggplot2")
-ps.csp = subset_taxa(ps, Kingdom == "Bacteria")
+data <- subset_taxa(ps, Species != "uncultured bacterium")
+data <- subset_taxa(data, Genus != "uncultured")
+data <- subset_taxa(data, Genus != "uncultured bacterium")
+ps.csp = subset_taxa(data, Kingdom == "Bacteria")
 plot_bar(ps.csp, fill="Species")
 
 p = plot_bar(ps.csp, "Sample", fill="Species")
@@ -136,3 +139,5 @@ p + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack")
 
 p = plot_bar(ps.csp, "Sample", fill="Phylum")
 p + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack")
+
+
