@@ -1,6 +1,6 @@
 ### GALATI Mathias 
 ### Étudiant à l'Université de Strasbourg en Biologie Structurale intégrative et Bio-Informatique
-### Stage M2S3 2019 : CIRAD Montpellier
+### Stage M2S4 2019 : CIRAD Montpellier
 
 ***************
 ### Préambule
@@ -66,8 +66,7 @@ Puis dans leurs répertoires respectifs, les scripts 2_S* permettent les analyse
     - [X] deblur
     - [X] vsearch
 
-### Statistiques
-[WORK IN PROGRESS]    
+### Statistiques   
 Issus des analyses bioinformatiques précédentes, les fichiers suivants sont nécéssaires pour les scripts de statistiques :    
 * ASV-table.biom.tsv qui correspond à la table d'OTU/ASV)
 * taxonomy.tsv qui correspond à l'assignation taxonomique
@@ -87,11 +86,3 @@ Packages R utilisés :
 - scales
 - reshape2
 
-***************
-### 3. Métagénomique   
-[WORK IN PROGRESS]
-
-
-***************
-### 4. Ressources    
-[WORK IN PROGRESS]
